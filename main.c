@@ -30,9 +30,8 @@
 
 int main(int argc, char *argv[])
 {
-    double *val;
-    int *I, *J, M, N, nz;
-    if (read_mtx(argv[--argc], &val, &I, &J, &M, &N, &nz)) {
+    struct MatrixMarket mm;
+    if (read_mtx(argv[--argc], &mm)) {
         printf("Error");
         return 1;
     }
@@ -40,13 +39,6 @@ int main(int argc, char *argv[])
     double data[256];
     int row_pointers[256];
     int col_index[256];
-    struct csr *csr= malloc(sizeof(struct csr *));
-    csr -> col_index = col_index;
-    csr -> row_pointer = row_pointers;
-    csr -> data = data;
-    csr -> num_rows = 9;
-    csr -> num_cols = 9;
-    /*
     struct csr csr = {
         .col_index = col_index,
         .row_pointer = row_pointers,
@@ -54,18 +46,11 @@ int main(int argc, char *argv[])
         .num_rows = 9,
         .num_cols = 9
     };
-    */
-    if (csr_dinit(csr, val, J, I, nz)) {
+    if (csr_dinit(&csr, mm.data, mm.rows, mm.cols, mm.nz)) {
         printf("Error!\n");
     }
-    printf("==================================\n");
-    for (int i = 0; i < nz; ++i) {
-        printf("%d %20.19g\n", csr->col_index[i], data[i]);
-    }
-    for (int i = 0; i < 10; i++) {
-        printf("i=%d rp=%d \n", i, csr->row_pointer[i]);
-    }  
-    printf("ok\n");
+    mm_write_banner(stdout, mm.typecode);
+    mm_write_mtx_crd_size(stdout, mm.num_rows, mm.num_cols, mm.nz);
 	return 0;
 }
 
