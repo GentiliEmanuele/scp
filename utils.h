@@ -1,0 +1,1 @@
+int read_mtx(const char *path, double **v, int **I, int **J, int *M, int *N, int *nz);

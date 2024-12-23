@@ -1,12 +1,12 @@
+#include <stddef.h>
 typedef struct csr
 {
     int *col_index;
     int *row_pointer;
-    double *data;
+    void *data;
     int num_rows;
     int num_cols;
 } csr_t;
 
-double csr_get(csr_t *mtx, int i, int j);
-
-
+int csr_iinit(struct csr *csr, int *v, int *ii, int *jj, int nz);
+int csr_dinit(struct csr *csr, double *v, int *ii, int *jj, int nz);
