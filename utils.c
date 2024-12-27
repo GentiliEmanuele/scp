@@ -10,9 +10,122 @@ static inline char *get_format_string(struct MatrixMarket *m) {
         if (mm_is_integer(m->typecode)) {
             return "%d %d %ld\n";
         } else {
-            return "%d %d %lf\n";
+            return "%d %d %lg\n";
         }
     }
+}
+
+static inline void iswap(int *v1, int i, int j) {
+    int t = v1[i];
+    v1[i] = v1[j];
+    v1[j] = t;
+}
+
+static inline void dswap(double *v1, int i, int j) {
+    double t = v1[i];
+    v1[i] = v1[j];
+    v1[j] = t;
+}
+
+int quicksort(int *I, int *J, void *V, int n, struct MatrixMarket *mm) {
+    for (int i = 0; i < n - 1; i++) {
+        int min = i;
+        int min_x = I[min];
+        int min_y = J[min];
+        for (int j = i+1; j < n; j++) {
+            int x = I[j];
+            int y = J[j];
+            if (x < min_x || (x == min_x && y < min_y)) {
+                min = j;
+                min_x = I[min];
+                min_y = J[min];
+            }
+        }
+        iswap(I, min, i);
+        iswap(J, min, i);
+        if (mm_is_pattern(mm->typecode) || mm_is_real(mm->typecode)) {
+            dswap((double*)V, min, i);
+        } else {
+            iswap((int*)V, min, i);
+        }
+    }
+}
+
+void unpack(struct MatrixMarket *mm, int real_nz) {
+    void *values = malloc(real_nz * get_element_size(mm));
+    int *rows = malloc(real_nz * sizeof(int));
+    int *cols = malloc(real_nz * sizeof(int));
+    int p = 0;
+    int *packed_rows = mm->rows;
+    int *packed_cols = mm->cols;
+    void *packed_values = mm->data;
+    for (int k = 0; k < mm->nz; ++k) {
+        int i = packed_rows[k];
+        int j = packed_cols[k];
+        rows[p] = i;
+        cols[p] = j;
+        if (mm_is_integer(mm->typecode)) {
+            ((int*)values)[p] = ((int*)packed_values)[k];
+        } else if (mm_is_real(mm->typecode)) {
+            ((double*)values)[p] = ((double*)packed_values)[k];
+        }
+        ++p;
+        if (i != j) {
+            rows[p] = j;
+            cols[p] = i;
+            if (mm_is_integer(mm->typecode)) {
+                ((int*)values)[p] = ((int*)packed_values)[k];
+            } else if (mm_is_real(mm->typecode)) {
+                ((double*)values)[p] = ((double*)packed_values)[k];
+            }
+            ++p;
+        }
+    }
+    quicksort(rows, cols, values, real_nz, mm);
+    free(mm->rows);
+    free(mm->cols);
+    free(mm->data);
+    mm->rows = rows;
+    mm->cols = cols;
+    mm->data = values;
+    mm->nz = real_nz;
+}
+
+int parse_rows(FILE *f, struct MatrixMarket *mm) {
+    int *rows = malloc(mm->nz * sizeof(int));
+    int *cols = malloc(mm->nz * sizeof(int));
+    void *values = malloc(mm->nz * get_element_size(mm));
+    char *fmt = get_format_string(mm);
+    int real_nz = 0;
+    for (int i = 0; i < mm->nz; i++) {
+        if (!mm_is_pattern(mm->typecode)) {
+            if (mm_is_real(mm->typecode)) {
+                fscanf(f, fmt, &rows[i], &cols[i], &((double*)values)[i]);
+            } else {
+                fscanf(f, fmt, &rows[i], &cols[i], &((int*)values)[i]);
+            }
+        } else {
+            fscanf(f, fmt, &rows[i], &cols[i]);
+            ((double*)values)[i] = 1.0;
+        }
+        rows[i]--;  /* adjust from 1-based to 0-based */
+        cols[i]--;
+        real_nz++;
+        if (mm_is_symmetric(mm->typecode) && rows[i] != cols[i]) {
+            real_nz++;
+        }
+    }
+    mm->rows = rows;
+    mm->cols = cols;
+    mm->data = values;
+    if (mm->nz != real_nz && mm_is_symmetric(mm->typecode)) {
+        printf("parsing a symmetric matrix: updating real number of non-zero values: from %d to %d!\n", mm->nz, real_nz);
+        unpack(mm, real_nz);
+    } else {
+        printf("non-zero count found in .mtx banner mismatch with the number of non-zeros counted\n");
+        return 1;
+    }
+    return 0;
 }
 
 /**
@@ -40,46 +153,16 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
         return 1;
     }
 
-    /* find out size of sparse matrix .... */
     int M, N, nz;
     int ret_code =  mm_read_mtx_crd_size(f, &M, &N, &nz);
     if (ret_code) {
         return 1;
     }
 
-    // I  col indexes
-    // J  row indexes
-    // counter_nz real number of non zero items
-    int counter_nz = 0;
-    int *I = (int *) malloc(nz * sizeof(int));
-    int *J = (int *) malloc(nz * sizeof(int));
-    char *fmt = get_format_string(mm);
-    int element_size = get_element_size(mm);
-    void *val = malloc(nz * get_element_size(mm));
-    for (int i = 0; i < nz; i++) {
-        if (!mm_is_pattern(mm->typecode)) {
-            if (mm_is_real(mm->typecode)) {
-                fscanf(f, fmt, &I[i], &J[i], &((double*)val)[i]);
-            } else {
-                fscanf(f, fmt, &I[i], &J[i], &((int*)val)[i]);
-            }
-        } else {
-            fscanf(f, fmt, &I[i], &J[i]);
-        }
-        if (mm_is_symmetric(mm->typecode) && (I[i] != J[i])) {
-            counter_nz += 2;
-        } else {
-            counter_nz += 1;
-        }
-        I[i]--;  /* adjust from 1-based to 0-based */
-        J[i]--;
-    }
-    fclose(f);
     mm->num_rows = M;
     mm->num_cols = N;
-    mm->nz = counter_nz;
-    mm->data = val;
-    mm->rows = J;
-    mm->cols = I;
-	return 0;
+    mm->nz = nz;
+    int ir = parse_rows(f, mm);
+    fclose(f);
+    return ir;
 }

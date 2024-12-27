@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/main",
-            "args": ["${workspaceFolder}/data/cage4.mtx"],
+            "args": ["${workspaceFolder}/data/sym3.mtx"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
