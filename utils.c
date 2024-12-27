@@ -27,28 +27,46 @@ static inline void dswap(double *v1, int i, int j) {
     v1[j] = t;
 }
 
-int quicksort(int *I, int *J, void *V, int n, struct MatrixMarket *mm) {
-    for (int i = 0; i < n - 1; i++) {
-        int min = i;
-        int min_x = I[min];
-        int min_y = J[min];
-        for (int j = i+1; j < n; j++) {
-            int x = I[j];
-            int y = J[j];
-            if (x < min_x || (x == min_x && y < min_y)) {
-                min = j;
-                min_x = I[min];
-                min_y = J[min];
-            }
-        }
-        iswap(I, min, i);
-        iswap(J, min, i);
-        if (mm_is_pattern(mm->typecode) || mm_is_real(mm->typecode)) {
-            dswap((double*)V, min, i);
-        } else {
-            iswap((int*)V, min, i);
+static inline void vswap(void *v, int i, int j, struct MatrixMarket *mm) {
+    if (mm_is_pattern(mm->typecode) || mm_is_real(mm->typecode)) {
+        dswap((double*)v, i, j);
+    } else {
+        iswap((int*)v, i, j);
+    }
+}
+
+static inline int __lt(int *rows, int *cols, int i, int j) {
+    return rows[i] < rows[j] || rows[i] == rows[j] && cols[i] < cols[j];
+}
+
+int __partition(int *rows, int *cols, void *values, int lo, int hi, struct MatrixMarket *mm) {
+    int pivot = hi;
+    int i = lo;
+    for (int j = lo; j < hi; ++j) {
+        if (__lt(rows, cols, j, pivot)) {
+            iswap(rows, i, j);
+            iswap(cols, i, j);
+            vswap(values, i, j, mm);
+            i += 1;
         }
     }
+    iswap(rows, i, hi);
+    iswap(cols, i, hi);
+    vswap(values, i, hi, mm);
+    return i;
+}
+
+void __sort(int *rows, int *cols, void *values, int lo, int hi, struct MatrixMarket *mm) {
+    if (lo >= hi || lo < 0) {
+        return;
+    }
+    int p = __partition(rows, cols, values, lo, hi, mm);
+    __sort(rows, cols, values, lo, p - 1, mm);
+    __sort(rows, cols, values, p + 1, hi, mm);
+}
+
+void sort(int *rows, int *cols, void *values, int n, struct MatrixMarket *mm) {
+    __sort(rows, cols, values, 0, n - 1, mm);
 }
 
 void unpack(struct MatrixMarket *mm, int real_nz) {
@@ -81,7 +99,7 @@ void unpack(struct MatrixMarket *mm, int real_nz) {
             ++p;
         }
     }
-    quicksort(rows, cols, values, real_nz, mm);
+    sort(rows, cols, values, real_nz, mm);
     free(mm->rows);
     free(mm->cols);
     free(mm->data);
