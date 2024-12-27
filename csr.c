@@ -2,30 +2,30 @@
 #include <string.h>
 
 // Create the csr struct for generic data
-int __csr_init(struct csr *csr, void *v, int *ii, int *jj, size_t b, int nz) {
-    memcpy(csr->data, v, nz * b);
-    memcpy(csr->col_index, jj, nz * b);
+int __csr_init(struct csr *csr, struct MatrixMarket *m) {
+    memcpy(csr->data, m->data, m->nz * get_element_size(m -> data));
+    memcpy(csr->col_index, m->cols, m->nz *sizeof(int));
     csr->row_pointer[0] = 0;
-    int prev = ii[0];
+    int prev = m->rows[0];
     int k = 1;
-    for (int i = 0; i < nz; ++i) {
-        int curr = ii[i];
+    for (int i = 0; i < m->nz; ++i) {
+        int curr = m->rows[i];
         if (prev != curr) {
             prev = curr;
             csr->row_pointer[k++] = i;
         }
     }
-    csr->row_pointer[k] = nz;
+    csr->row_pointer[k] = m->nz;
     return 0;
 }
 
 // Create the csr struct for int data
-int csr_iinit(struct csr *csr, int *v, int *ii, int *jj, int nz)
+int csr_iinit(struct csr *csr, struct MatrixMarket *m)
 {
-    return __csr_init(csr, (void*)v, ii, jj, sizeof(int), nz);
+    return __csr_init(csr, m);
 }
 
 // Create the csr struct for double data
-int csr_dinit(struct csr *csr, double *v, int *ii, int *jj, int nz) {
-    return __csr_init(csr, (void*)v, ii, jj, sizeof(double), nz);
+int csr_dinit(struct csr *csr, struct MatrixMarket *m) {
+    return __csr_init(csr, m);
 }

@@ -1,3 +1,6 @@
+#ifndef CSR_H
+#define CSR_H
+#include "utils.h"
 #include <stddef.h>
 typedef struct csr
 {
@@ -8,5 +11,6 @@ typedef struct csr
     int num_cols;
 } csr_t;
 
-int csr_iinit(struct csr *csr, int *v, int *ii, int *jj, int nz);
-int csr_dinit(struct csr *csr, double *v, int *ii, int *jj, int nz);
+int csr_iinit(struct csr *csr, struct MatrixMarket *m);
+int csr_dinit(struct csr *csr, struct MatrixMarket *m);
+#endif

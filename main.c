@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
         .num_rows = 9,
         .num_cols = 9
     };
-    if (csr_dinit(&csr, mm.data, mm.rows, mm.cols, mm.nz)) {
+    if (csr_dinit(&csr, &mm)) { 
         printf("Error!\n");
     }
     mm_write_banner(stdout, mm.typecode);

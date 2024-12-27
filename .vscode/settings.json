@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "mmio.h": "c",
+        "utils.h": "c"
+    }
+}

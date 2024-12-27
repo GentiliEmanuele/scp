@@ -3,6 +3,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static inline char *get_format_string(struct MatrixMarket *m) {
+    if (mm_is_pattern(m->typecode)) {
+        return "%d %d\n";
+    } else {
+        if (mm_is_integer(m->typecode)) {
+            return "%d %d %ld\n";
+        } else {
+            return "%d %d %lf\n";
+        }
+    }
+}
+
+/**
+ * read_mtx -- read a file in MatrixMarket format
+ * @param path -- path of the file to read
+ * @param mm   -- output struct
+ * @return 1 if the file cannot be opened or the matrix is in a format not supported,
+ * 0 otherwise.
+ */
 int read_mtx(const char *path, struct MatrixMarket *mm) {
     FILE* f = fopen(path, "r");
     if (f == NULL) {
@@ -28,18 +47,37 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
         return 1;
     }
 
+    // I  col indexes
+    // J  row indexes
+    // counter_nz real number of non zero items
+    int counter_nz = 0;
     int *I = (int *) malloc(nz * sizeof(int));
     int *J = (int *) malloc(nz * sizeof(int));
-    double *val = (double *) malloc(nz * sizeof(double));
+    char *fmt = get_format_string(mm);
+    int element_size = get_element_size(mm);
+    void *val = malloc(nz * get_element_size(mm));
     for (int i = 0; i < nz; i++) {
-        fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+        if (!mm_is_pattern(mm->typecode)) {
+            if (mm_is_real(mm->typecode)) {
+                fscanf(f, fmt, &I[i], &J[i], &((double*)val)[i]);
+            } else {
+                fscanf(f, fmt, &I[i], &J[i], &((int*)val)[i]);
+            }
+        } else {
+            fscanf(f, fmt, &I[i], &J[i]);
+        }
+        if (mm_is_symmetric(mm->typecode) && (I[i] != J[i])) {
+            counter_nz += 2;
+        } else {
+            counter_nz += 1;
+        }
         I[i]--;  /* adjust from 1-based to 0-based */
         J[i]--;
     }
     fclose(f);
     mm->num_rows = M;
     mm->num_cols = N;
-    mm->nz = nz;
+    mm->nz = counter_nz;
     mm->data = val;
     mm->rows = J;
     mm->cols = I;
