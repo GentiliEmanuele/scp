@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "mmio.h"
 #include "csr.h"
+#include "hll.h"
 #include "utils.h"
 
 void write_csr_mtx(struct csr *csr, struct MatrixMarket *mm) {
@@ -30,20 +31,10 @@ int main(int argc, char *argv[])
         printf("Read error!");
         return 1;
     }
-    double *data = malloc(mm.nz * get_element_size(&mm));
-    int *row_pointers = malloc((mm.num_rows + 1) * sizeof(int));
-    int *col_index = malloc(mm.nz * sizeof(int));
-    struct csr csr = {
-        .col_index = col_index,
-        .row_pointer = row_pointers,
-        .data = data,
-        .num_rows = mm.num_rows,
-        .num_cols = mm.num_cols
-    };
-    if (csr_dinit(&csr, &mm)) { 
+    struct hll hll;
+    if (hll_dinit(&hll, &mm, 2)) { 
         printf("Error!\n");
     }
-    write_csr_mtx(&csr, &mm);
     return 0;
 }
 

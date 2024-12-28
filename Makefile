@@ -1,5 +1,5 @@
 all:
-	gcc -g csr.c mmio.c utils.c main.c -o main
+	gcc -g csr.c mmio.c utils.c main.c hll.c -o main
 
 clean:
 	rm main
