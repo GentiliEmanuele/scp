@@ -27,10 +27,9 @@ int main(int argc, char *argv[])
 {
     struct MatrixMarket mm;
     if (read_mtx(argv[--argc], &mm)) {
-        printf("Error");
+        printf("Read error!");
         return 1;
     }
-    
     double *data = malloc(mm.nz * get_element_size(&mm));
     int *row_pointers = malloc((mm.num_rows + 1) * sizeof(int));
     int *col_index = malloc(mm.nz * sizeof(int));

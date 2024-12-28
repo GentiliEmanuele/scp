@@ -118,12 +118,12 @@ int parse_rows(FILE *f, struct MatrixMarket *mm) {
     for (int i = 0; i < mm->nz; i++) {
         if (!mm_is_pattern(mm->typecode)) {
             if (mm_is_real(mm->typecode)) {
-                fscanf(f, fmt, &rows[i], &cols[i], &((double*)values)[i]);
+                fscanf(f, fmt, &cols[i], &rows[i], &((double*)values)[i]);
             } else {
-                fscanf(f, fmt, &rows[i], &cols[i], &((int*)values)[i]);
+                fscanf(f, fmt, &cols[i], &rows[i], &((int*)values)[i]);
             }
         } else {
-            fscanf(f, fmt, &rows[i], &cols[i]);
+            fscanf(f, fmt, &cols[i], &rows[i]);
             ((double*)values)[i] = 1.0;
         }
         rows[i]--;  /* adjust from 1-based to 0-based */
@@ -139,7 +139,7 @@ int parse_rows(FILE *f, struct MatrixMarket *mm) {
     if (mm->nz != real_nz && mm_is_symmetric(mm->typecode)) {
         printf("parsing a symmetric matrix: updating real number of non-zero values: from %d to %d!\n", mm->nz, real_nz);
         unpack(mm, real_nz);
-    } else {
+    } else if (!mm_is_symmetric(mm->typecode) && mm->nz != real_nz) {
         printf("non-zero count found in .mtx banner mismatch with the number of non-zeros counted\n");
         return 1;
     }
