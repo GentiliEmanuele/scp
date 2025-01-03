@@ -2,11 +2,12 @@
 
 typedef struct hll
 {
-    void *hacks;
-    int *col_index;
-    int *offsets;
+    int  *offsets;
+    int  offsets_num;
+    int  *col_index;
     void *data;
+    int  data_num;
+    int  hacks_num;
 } hll_t;
 
-int hll_iinit(struct hll *hll, struct MatrixMarket *mm, int hack_size);
-int hll_dinit(struct hll *hll, struct MatrixMarket *mm, int hack_size);
+int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm);
