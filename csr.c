@@ -1,9 +1,27 @@
 #include "csr.h"
 #include "mmio.h"
+#include <stdlib.h>
 #include <string.h>
 
 // Create the csr struct for generic data
-int __csr_init(struct csr *csr, struct MatrixMarket *m) {
+int csr_init(struct csr *csr, struct MatrixMarket *m) {
+    csr->num_rows = m->num_rows;
+    csr->num_cols = m->num_cols;
+    csr->data = malloc(m->nz * get_element_size(m));
+    if (csr->data == NULL) {
+        return 1;
+    }
+    csr->row_pointer = malloc(csr->num_rows + 1);
+    if (csr->row_pointer == NULL) {
+        free(csr->data);
+        return 1;
+    }
+    csr->col_index = malloc(m->nz * sizeof(int));
+    if (csr->col_index == NULL) {
+        free(csr->data);
+        free(csr->row_pointer);
+        return 1;
+    }
     if (mm_is_pattern(m->typecode)) {
         double *data = (double*)m->data;
         for (int i = 0; i < m -> nz; i ++) {
@@ -25,15 +43,4 @@ int __csr_init(struct csr *csr, struct MatrixMarket *m) {
     }
     csr->row_pointer[k] = m->nz;
     return 0;
-}
-
-// Create the csr struct for int data
-int csr_iinit(struct csr *csr, struct MatrixMarket *m)
-{
-    return __csr_init(csr, m);
-}
-
-// Create the csr struct for double data
-int csr_dinit(struct csr *csr, struct MatrixMarket *m) {
-    return __csr_init(csr, m);
 }

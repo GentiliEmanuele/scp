@@ -11,6 +11,5 @@ typedef struct csr
     int num_cols;
 } csr_t;
 
-int csr_iinit(struct csr *csr, struct MatrixMarket *m);
-int csr_dinit(struct csr *csr, struct MatrixMarket *m);
+int csr_init(struct csr *csr, struct MatrixMarket *m);
 #endif

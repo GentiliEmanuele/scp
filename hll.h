@@ -1,3 +1,5 @@
+#ifndef HLL_H
+#define HLL_H
 #include "utils.h"
 
 typedef struct hll
@@ -8,6 +10,9 @@ typedef struct hll
     void *data;
     int  data_num;
     int  hacks_num;
+    int  num_rows;
+    int  num_cols;
 } hll_t;
 
 int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm);
+#endif

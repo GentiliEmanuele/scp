@@ -4,6 +4,7 @@
 #include "csr.h"
 #include "hll.h"
 #include "utils.h"
+#include "spmv_seq.h"
 
 void write_csr_mtx(struct csr *csr, struct MatrixMarket *mm) {
     for (int i = 0; i < csr->num_rows; ++i) {
@@ -63,18 +64,20 @@ int main(int argc, char *argv[])
         printf("Read error!");
         return 1;
     }
-    struct hll hll;
-    if (hll_init(&hll, 32, &mm)) { 
+    struct csr sm;    
+    if (csr_init(&sm, &mm)) { 
         printf("Error!\n");
         return 1;
     }
-    free(mm.data);
-    free(mm.cols);
-    free(mm.rows);
-    write_hll(&hll, &mm);
-    free(hll.offsets);
-    free(hll.data);
-    free(hll.col_index);
+    double v[3] = {1,1,1};
+    double r[3];
+    if (d_spmv_csr_seq(r, &sm, v, 3)) {
+        return 1;
+    }
+    for (int i = 0; i < 3; i++) {
+        printf("%f ", r[i]);
+    }
+    printf("\n");
+    
     return 0;
 }
-

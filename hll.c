@@ -117,6 +117,8 @@ void __read_row(struct MatrixMarket *mm, int *mmp, struct hll *hll, int *hllp, i
  * @param mm (in)        input matrix in MatrixMarket format
  * */  
 int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
+    hll->num_rows = mm->num_rows;
+    hll->num_cols = mm->num_cols;
     // nzr is the array that keeps track of how many non-zeros each
     // row has -i.e. nzr[i] is the number of non-zeros of the i-th row of mm
     int *nzr = malloc(mm->num_rows * sizeof(int));
