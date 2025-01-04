@@ -1,11 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "mmio.h"
 #include "csr.h"
 #include "hll.h"
 #include "utils.h"
 #include "spmv_seq.h"
 #include "spmv_openmp.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 void write_csr_mtx(struct csr *csr, struct MatrixMarket *mm) {
     for (int i = 0; i < csr->num_rows; ++i) {
@@ -65,23 +66,30 @@ int main(int argc, char *argv[])
         printf("Read error!");
         return 1;
     }
-    struct csr sm;
-    if (csr_init(&sm, &mm)) { 
+    struct hll sm;
+    if (hll_init(&sm, 32, &mm)) { 
         printf("Error!\n");
         return 1;
     }
 
-    write_csr_mtx(&sm, &mm);
+    printf("Matrix has %d rows and %d cols\n", sm.num_rows, sm.num_cols);
 
-    int v[3] = {1,1,1};
-    int r[3];
-    if (i_spmv_csr_par(r, &sm, v, 3)) {
+    srand(42);
+    double *r = malloc(sm.num_cols * sizeof(double));
+    double *v = malloc(sm.num_cols * sizeof(double));
+/*
+    clock_t start = clock();
+    if (d_spmv_csr_par(r, &sm, v, sm.num_cols)) {
         return 1;
     }
-    for (int i = 0; i < 3; i++) {
-        printf("%d ", r[i]);
+    clock_t end = clock();
+    printf("Total time spent (openmp): %f\n", ((double)(end - start) / CLOCKS_PER_SEC));
+    start = clock();
+    if (d_spmv_csr_seq(r, &sm, v, sm.num_cols)) {
+        return 1;
     }
-    printf("\n");
-    
+    end = clock();
+    printf("Total time spent (serial): %f\n", ((double)(end - start) / CLOCKS_PER_SEC));
+    */
     return 0;
 }

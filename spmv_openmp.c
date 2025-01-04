@@ -45,6 +45,7 @@ int d_spmv_csr_par(double *res, struct csr *csr, double *v, int n) {
 }
     int j;
     #pragma omp for private(j) schedule(static)
+
     for (int i = 0; i < csr->num_rows; ++i) {
         res[i] = 0.0;
         for (j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {

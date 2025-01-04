@@ -5,6 +5,7 @@
         "stdio.h": "c",
         "string.h": "c",
         "spmv_openmp.h": "c",
-        "omp.h": "c"
+        "omp.h": "c",
+        "limits": "c"
     }
 }

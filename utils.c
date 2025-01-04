@@ -2,6 +2,9 @@
 #include "mmio.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include <errno.h>
+#include <string.h>
 
 static inline char *get_format_string(struct MatrixMarket *m) {
     if (mm_is_pattern(m->typecode)) {
@@ -183,4 +186,22 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
     int ir = parse_rows(f, mm);
     fclose(f);
     return ir;
+}
+
+double *d_random(int n) {
+    double *v = malloc(n * sizeof(double));
+    for (int i = 0; i < n; i++) {
+        v[i] = (double)rand() / RAND_MAX;
+    }
+    perror(strerror(errno));
+    return v;
+    
+}
+
+int *i_random(int n) {
+    int *v = malloc(n * sizeof(int));
+    for (int i = 0; i < n; i++) {
+        v[i] = rand();
+    }
+    return v;
 }
