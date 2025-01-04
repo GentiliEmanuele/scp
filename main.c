@@ -5,6 +5,7 @@
 #include "hll.h"
 #include "utils.h"
 #include "spmv_seq.h"
+#include "spmv_openmp.h"
 
 void write_csr_mtx(struct csr *csr, struct MatrixMarket *mm) {
     for (int i = 0; i < csr->num_rows; ++i) {
@@ -16,7 +17,7 @@ void write_csr_mtx(struct csr *csr, struct MatrixMarket *mm) {
             int col = csr->col_index[j]+1;
             if (mm_is_integer(mm->typecode)) {
                 int v = ((int*)csr->data)[j];
-                printf("%d %d %f\n", i+1, col, v);
+                printf("%d %d %d\n", i+1, col, v);
             } else {
                 double v = ((double*)csr->data)[j];
                 printf("%d %d %f\n", i+1, col, v);
@@ -64,18 +65,21 @@ int main(int argc, char *argv[])
         printf("Read error!");
         return 1;
     }
-    struct csr sm;    
+    struct csr sm;
     if (csr_init(&sm, &mm)) { 
         printf("Error!\n");
         return 1;
     }
-    double v[3] = {1,1,1};
-    double r[3];
-    if (d_spmv_csr_seq(r, &sm, v, 3)) {
+
+    write_csr_mtx(&sm, &mm);
+
+    int v[3] = {1,1,1};
+    int r[3];
+    if (i_spmv_csr_par(r, &sm, v, 3)) {
         return 1;
     }
     for (int i = 0; i < 3; i++) {
-        printf("%f ", r[i]);
+        printf("%d ", r[i]);
     }
     printf("\n");
     

@@ -3,6 +3,8 @@
         "mmio.h": "c",
         "utils.h": "c",
         "stdio.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "spmv_openmp.h": "c",
+        "omp.h": "c"
     }
 }
