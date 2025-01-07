@@ -80,7 +80,8 @@ int d_spmv_csr_par(double *res, struct csr *csr, double *v, int n) {
     }
 }
 
-if (__init_component_arrays(&results, num_threads,  csr->num_cols / num_threads)) {
+int chunks_size =  csr->num_cols / num_threads;
+if (__init_component_arrays(&results, num_threads, chunks_size)) {
     printf("malloc failed while allocating space for temporary results\n");
     return 1;
 }
@@ -89,24 +90,28 @@ if (__init_component_arrays(&results, num_threads,  csr->num_cols / num_threads)
 {
     tmp_res = results[omp_get_thread_num()];
     int k = 0;
-    struct component *p_res = tmp_res;
     int j;
     #pragma omp for private(j) schedule(static)
     for (int i = 0; i < csr->num_rows; ++i) {
-        p_res[k].pos = i;
-        p_res[k].d_val = 0.0;
+        tmp_res[k].pos = i;
+        tmp_res[k].d_val = 0.0;
         for (j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {
-            p_res[k].d_val += data[j] * v[csr->col_index[j]];
+            tmp_res[k].d_val += data[j] * v[csr->col_index[j]];
         }
         ++k;
     }
-    p_res[k].pos = -1;
+    printf("(tid=%d) written %d\n", omp_get_thread_num(), k);
+    tmp_res[k].pos = -1;
 }
 
     for (int i = 0; i < num_threads; ++i) {
         struct component *p = results[i];
-        for (int j = 0; p[j].pos > 0; ++j) {
+        int c = 0;
+        for (int j = 0; j < chunks_size && p[j].pos > 0; ++j) {
             res[p[j].pos] = p[j].d_val;
+            if (c < 5) {
+                printf("%d %f ?? %f\n", p[j].pos, p[j].d_val, res[p[j].pos]);
+            }
         }
     }
 

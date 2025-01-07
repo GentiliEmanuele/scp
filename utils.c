@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "mmio.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -193,14 +194,15 @@ double *d_random(int n) {
     for (int i = 0; i < n; i++) {
         v[i] = (double)rand() / RAND_MAX;
     }
+    perror(strerror(errno));
     return v;
     
 }
 
-int *i_random(int n) {
-    int *v = malloc(n * sizeof(int));
+int d_veceq(double *u, double *v, int n, double eps) {
     for (int i = 0; i < n; i++) {
-        v[i] = rand();
+        if (fabs(u[i] - v[i]) > eps)
+            return 1;
     }
-    return v;
+    return 0;
 }

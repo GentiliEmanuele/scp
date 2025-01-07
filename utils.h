@@ -24,5 +24,7 @@ static inline int get_element_size(struct MatrixMarket *m) {
 
 int read_mtx(const char *path, struct MatrixMarket *mm);
 
+int d_veceq(double *u, double *v, int n, double eps);
+
 double *d_random(int n);
 #endif

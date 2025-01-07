@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
 
     srand(42);
     double *r = malloc(sm.num_cols * sizeof(double));
+    double *s = malloc(sm.num_cols * sizeof(double));
     double *v = d_random(sm.num_cols);
     clock_t start = clock();
     if (d_spmv_csr_par(r, &sm, v, sm.num_cols)) {
@@ -84,10 +85,16 @@ int main(int argc, char *argv[])
     clock_t end = clock();
     printf("Total time spent (openmp): %f\n", ((double)(end - start) / CLOCKS_PER_SEC));
     start = clock();
-    if (d_spmv_csr_seq(r, &sm, v, sm.num_cols)) {
+    if (d_spmv_csr_seq(s, &sm, v, sm.num_cols)) {
         return 1;
     }
     end = clock();
     printf("Total time spent (serial): %f\n", ((double)(end - start) / CLOCKS_PER_SEC));
+    if (d_veceq(r, s, sm.num_cols, 1e-2)) {
+        printf("test failed!\n");
+    }
+    for (int i = 0; i < 10; ++i) {
+        printf("%f\t%f\n", r[i], s[i]);
+    }
     return 0;
 }
