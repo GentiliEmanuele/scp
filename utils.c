@@ -193,7 +193,6 @@ double *d_random(int n) {
     for (int i = 0; i < n; i++) {
         v[i] = (double)rand() / RAND_MAX;
     }
-    perror(strerror(errno));
     return v;
     
 }

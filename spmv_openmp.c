@@ -43,9 +43,10 @@ int d_spmv_csr_par(double *res, struct csr *csr, double *v, int n) {
         printf("number of threads: %d\n", omp_get_num_threads());
     }
 }
-    int j;
-    #pragma omp for private(j) schedule(static)
 
+    int j;
+    double *p_res;
+    #pragma omp for private(j, p_res) schedule(static)
     for (int i = 0; i < csr->num_rows; ++i) {
         res[i] = 0.0;
         for (j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {

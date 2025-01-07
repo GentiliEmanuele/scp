@@ -11,7 +11,7 @@ int csr_init(struct csr *csr, struct MatrixMarket *m) {
     if (csr->data == NULL) {
         return 1;
     }
-    csr->row_pointer = malloc(csr->num_rows + 1);
+    csr->row_pointer = malloc((csr->num_rows + 1) * sizeof(int));
     if (csr->row_pointer == NULL) {
         free(csr->data);
         return 1;

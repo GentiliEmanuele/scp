@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
         printf("Read error!");
         return 1;
     }
-    struct hll sm;
-    if (hll_init(&sm, 32, &mm)) { 
+    struct csr sm;
+    if (csr_init(&sm, &mm)) { 
         printf("Error!\n");
         return 1;
     }
@@ -76,8 +76,7 @@ int main(int argc, char *argv[])
 
     srand(42);
     double *r = malloc(sm.num_cols * sizeof(double));
-    double *v = malloc(sm.num_cols * sizeof(double));
-/*
+    double *v = d_random(sm.num_cols);
     clock_t start = clock();
     if (d_spmv_csr_par(r, &sm, v, sm.num_cols)) {
         return 1;
@@ -90,6 +89,5 @@ int main(int argc, char *argv[])
     }
     end = clock();
     printf("Total time spent (serial): %f\n", ((double)(end - start) / CLOCKS_PER_SEC));
-    */
     return 0;
 }
