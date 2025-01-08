@@ -51,9 +51,11 @@ int d_spmv_csr_par_slow(double *res, struct csr *csr, double *v, int n) {
 {
     #pragma omp for schedule(static)
     for (int i = 0; i < csr->num_rows; ++i) {
+        double sum = 0.0;
         for (int j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {
-            res[i] += data[j] * v[csr->col_index[j]];
+            sum += data[j] * v[csr->col_index[j]];
         }
+        res[i] = sum;
     }
 }
 
@@ -90,10 +92,11 @@ int d_spmv_csr_par(double *res, struct csr *csr, double *v, int n) {
     #pragma omp for schedule(static)
     for (int i = 0; i < csr->num_rows; ++i) {
         tmp_res[k].pos = i;
-        tmp_res[k].d_val = 0.0;
+        double sum = 0.0;
         for (int j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {
-            tmp_res[k].d_val += data[j] * v[csr->col_index[j]];
+            sum += data[j] * v[csr->col_index[j]];
         }
+        tmp_res[k].d_val = sum;
         ++k;
     }
     tmp_res[k].pos = -1;
