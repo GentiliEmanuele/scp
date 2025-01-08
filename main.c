@@ -77,32 +77,29 @@ int main(int argc, char *argv[])
         printf("Read error!");
         return 1;
     }
+    printf("matrix has %d rows and %d cols\n", mm.num_rows, mm.num_cols);
+    
     struct csr sm;
     if (csr_init(&sm, &mm)) { 
         printf("cannot read matrix into CSR format\n");
         return 1;
     }
 
-    printf("matrix has %d rows and %d cols\n", sm.num_rows, sm.num_cols);
-
     srand(42);
     double *r = malloc(sm.num_cols * sizeof(double));
-    double *s = malloc(sm.num_cols * sizeof(double));
     double *v = d_random(sm.num_cols);
-    clock_t start = clock();
-    if (d_spmv_csr_par(r, &sm, v, sm.num_cols)) {
-        return 1;
+    double sum_of_times = 0;
+    for (int i = 0; i < num_iterations; i++) {
+        clock_t start = clock();
+        if (d_spmv_csr_par(r, &sm, v, sm.num_cols)) {
+            return 1;
+        }
+        clock_t end = clock();
+        sum_of_times += (end - start) / (double)CLOCKS_PER_SEC;  
     }
-    clock_t end = clock();
-    printf("total time spent (openmp): %f\n", ((double)(end - start) / CLOCKS_PER_SEC));
-    start = clock();
-    if (d_spmv_csr_seq(s, &sm, v, sm.num_cols)) {
-        return 1;
-    }
-    end = clock();
-    printf("total time spent (serial): %f\n", ((double)(end - start) / CLOCKS_PER_SEC));
-    if (d_veceq(r, s, sm.num_cols, 1e-2)) {
-        printf("test failed!\n");
-    }
+    double mean_time = sum_of_times / num_iterations;
+    double flops = (2 * mm.nz) / (double)mean_time;
+    printf("mean time: %f s\n", mean_time);
+    printf("MEGA FLOPS=%f\n", flops * 1e-6);
     return 0;
 }

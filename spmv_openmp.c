@@ -44,7 +44,7 @@ int d_spmv_csr_par(double *res, struct csr *csr, double *v, int n) {
 {
     if (omp_get_thread_num() == 0) {
         num_threads = omp_get_num_threads();
-        printf("executing sparse matrix vector product with %d threads\n", omp_get_num_threads());
+        // printf("executing sparse matrix vector product with %d threads\n", omp_get_num_threads());
     }
 }
 
@@ -92,7 +92,7 @@ int i_spmv_csr_par(int *res, struct csr *csr, int *v, int n) {
 {
     if (omp_get_thread_num() == 0) {
         num_threads = omp_get_num_threads();
-        printf("executing sparse matrix vector product with %d threads\n", omp_get_num_threads());
+        // printf("executing sparse matrix vector product with %d threads\n", omp_get_num_threads());
     }
 }
 
@@ -124,5 +124,9 @@ int i_spmv_csr_par(int *res, struct csr *csr, int *v, int n) {
             res[p[j].pos] = p[j].i_val;
         }
     }
+    for (int i = 0; i < num_threads; i++) {
+        free(results[i]);
+    }
+    
     return 0;
 }
