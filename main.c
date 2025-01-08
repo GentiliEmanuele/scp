@@ -5,6 +5,7 @@
 #include "spmv_seq.h"
 #include "spmv_openmp.h"
 #include <errno.h>
+#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,17 +64,22 @@ void write_hll(struct hll *hll, struct MatrixMarket *mm) {
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3) {
-        printf("Please passing the matrix and number of iterations as argumment \n");
+    if (--argc != 3) {
+        printf("see usage: program num_threads num_runs matrix\n");
         return -1;
     }
-    long num_iterations = strtol(argv[--argc], NULL, 10);
+    long num_threads = strtol(argv[argc--], NULL, 10);
+    if (num_threads == 0) {
+        printf("an error (%s) occurred while parsing num_threads: %s\n", argv[argc+1]);
+        return 1;
+    }
+    long num_iterations = strtol(argv[argc--], NULL, 10);
     if (num_iterations == 0) {
         printf("The error (%s) occured while convert string to long", strerror);
         return -1;
     }
     struct MatrixMarket mm;
-    if (read_mtx(argv[--argc], &mm)) {
+    if (read_mtx(argv[argc--], &mm)) {
         printf("Read error!");
         return 1;
     }
@@ -85,13 +91,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    omp_set_num_threads(num_threads);
     srand(42);
     double *r = malloc(sm.num_cols * sizeof(double));
     double *v = d_random(sm.num_cols);
     double sum_of_times = 0;
     for (int i = 0; i < num_iterations; i++) {
         clock_t start = clock();
-        if (d_spmv_csr_par(r, &sm, v, sm.num_cols)) {
+        if (d_spmv_csr_seq(r, &sm, v, sm.num_cols)) {
             return 1;
         }
         clock_t end = clock();

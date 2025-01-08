@@ -31,6 +31,35 @@ static int init_component_arrays(struct component ***out, int num_threads, int c
     return 0;
 }
 
+int d_spmv_csr_par_slow(double *res, struct csr *csr, double *v, int n) {
+    double *data = (double*)csr->data;
+    if (n != csr->num_cols) {
+        printf("matrix and vector must have the same number of columns\n");
+        return 1;
+    }
+
+    int num_threads;
+#pragma omp parallel
+{
+    if (omp_get_thread_num() == 0) {
+        num_threads = omp_get_num_threads();
+        // printf("executing sparse matrix vector product with %d threads\n", omp_get_num_threads());
+    }
+}
+
+#pragma omp parallel
+{
+    #pragma omp for schedule(static)
+    for (int i = 0; i < csr->num_rows; ++i) {
+        for (int j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {
+            res[i] += data[j] * v[csr->col_index[j]];
+        }
+    }
+}
+
+    return 0;
+}
+
 int d_spmv_csr_par(double *res, struct csr *csr, double *v, int n) {
     double *data = (double*)csr->data;
     if (n != csr->num_cols) {
@@ -118,6 +147,7 @@ int i_spmv_csr_par(int *res, struct csr *csr, int *v, int n) {
     tmp_res[k].pos = -1;
 }
 
+
     for (int i = 0; i < num_threads; ++i) {
         struct component *p = results[i];
         for (int j = 0; j < chunk_size && p[j].pos >= 0; ++j) {
@@ -127,6 +157,6 @@ int i_spmv_csr_par(int *res, struct csr *csr, int *v, int n) {
     for (int i = 0; i < num_threads; i++) {
         free(results[i]);
     }
-    
+
     return 0;
 }
