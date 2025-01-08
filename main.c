@@ -4,8 +4,10 @@
 #include "utils.h"
 #include "spmv_seq.h"
 #include "spmv_openmp.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 void write_csr_mtx(struct csr *csr, struct MatrixMarket *mm) {
@@ -61,6 +63,15 @@ void write_hll(struct hll *hll, struct MatrixMarket *mm) {
 
 int main(int argc, char *argv[])
 {
+    if (argc != 3) {
+        printf("Please passing the matrix and number of iterations as argumment \n");
+        return -1;
+    }
+    long num_iterations = strtol(argv[--argc], NULL, 10);
+    if (num_iterations == 0) {
+        printf("The error (%s) occured while convert string to long", strerror);
+        return -1;
+    }
     struct MatrixMarket mm;
     if (read_mtx(argv[--argc], &mm)) {
         printf("Read error!");
