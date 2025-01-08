@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static inline int __max(int *v, int lo, int hi_exclusive) {
+static inline int max(int *v, int lo, int hi_exclusive) {
     int max = -1;
     for (int i = lo; i < hi_exclusive; ++i) {
         if (max < v[i]) {
@@ -13,13 +13,13 @@ static inline int __max(int *v, int lo, int hi_exclusive) {
 }
 
 /**
-  * __get_nonzeros calculates the number of nonzero items for each row in the
+  * get_nonzeros calculates the number of nonzero items for each row in the
   * matrix mm and saves them in nzr.
   * @param mm  (in)  matrix
   * @param nzr (out) vector thats holds the number of nonzeros for each row of mm -i.e.
   * nzr[i] holds the number of nonzeros for the i-th row in mm
   */
-void __get_nonzeros(struct MatrixMarket *mm, int *nzr) {
+static void get_nonzeros(struct MatrixMarket *mm, int *nzr) {
     int curr_nz = 0;
     int prev = mm->rows[0];
     int k = 0;
@@ -36,14 +36,14 @@ void __get_nonzeros(struct MatrixMarket *mm, int *nzr) {
     nzr[k++] = curr_nz;
 }
 
-int __get_data_size(int *nzr, int hack_size, int num_rows) {
+static int get_data_size(int *nzr, int hack_size, int num_rows) {
     int data_size = 0;
     int start = 0;
     while (start + hack_size < num_rows) {
-        data_size += hack_size * __max(nzr, start, start + hack_size);
+        data_size += hack_size * max(nzr, start, start + hack_size);
         start += hack_size;
     }
-    return data_size + (num_rows - start) * __max(nzr, start, num_rows);
+    return data_size + (num_rows - start) * max(nzr, start, num_rows);
 }
 
 static void inline ifill(int *v, int start, int n, int val) {
@@ -58,12 +58,12 @@ static void inline dfill(double *v, int start, int n, double val) {
     }
 }
 
-static inline void __vcopy(void *dest, int dstart, void *src, int sstart, int n, int itmsz) {
+static inline void vcopy(void *dest, int dstart, void *src, int sstart, int n, int itmsz) {
     memcpy(dest + (dstart * itmsz), src + (sstart * itmsz), n * itmsz);
 }
 
 /**
- * __fill_padding add n values of padding to data and col_index if the row has less non-zero
+ * fill_padding add n values of padding to data and col_index if the row has less non-zero
  * values of the maximum number of non-zeros in the hack:
  * - 0 to data
  * - the last index of column in the row to col_index
@@ -72,7 +72,7 @@ static inline void __vcopy(void *dest, int dstart, void *src, int sstart, int n,
  * @param hllp (in) starting index of hll->data and hll->col_index where to start writing padding
  * @param n (in)    number of values of padding to write
  */
-static inline void __fill_padding(struct MatrixMarket *mm, struct hll *hll, int hllp, int n) {
+static inline void fill_padding(struct MatrixMarket *mm, struct hll *hll, int hllp, int n) {
     if (n > 0) {
         ifill(hll->col_index, hllp, n, hll->col_index[hllp-1]);
         if (mm_is_integer(mm->typecode)) {
@@ -84,7 +84,7 @@ static inline void __fill_padding(struct MatrixMarket *mm, struct hll *hll, int 
 }
 
 /**
- * __read_row reads a row of a sparse matrix in MatrixMarket format and produces
+ * read_row reads a row of a sparse matrix in MatrixMarket format and produces
  * the equivalent HLL representation of that row.
  * @param mm (in)       input matrix in MatrixMarket format
  * @param mmp (in/out)  pointer to the next matrix component to read
@@ -93,7 +93,7 @@ static inline void __fill_padding(struct MatrixMarket *mm, struct hll *hll, int 
  *                      matrix components and column indices respectively
  * @param maxnzr (in)   max number of non-zeros in the hack
  */
-void __read_row(struct MatrixMarket *mm, int *mmp, struct hll *hll, int *hllp, int maxnzr) {
+static void read_row(struct MatrixMarket *mm, int *mmp, struct hll *hll, int *hllp, int maxnzr) {
     // Legge tutta la riga della matrice:
     // n è il numero di elementi non zero della riga
     int row = mm->rows[*mmp];
@@ -102,12 +102,12 @@ void __read_row(struct MatrixMarket *mm, int *mmp, struct hll *hll, int *hllp, i
         ++n;
     }
     
-    __vcopy(hll->data, *hllp, mm->data, *mmp, n, get_element_size(mm));
-    __vcopy(hll->col_index, *hllp, mm->cols, *mmp, n, sizeof(int));
+    vcopy(hll->data, *hllp, mm->data, *mmp, n, get_element_size(mm));
+    vcopy(hll->col_index, *hllp, mm->cols, *mmp, n, sizeof(int));
     *hllp += n;
     *mmp += n;
 
-    __fill_padding(mm, hll, *hllp, maxnzr - n);
+    fill_padding(mm, hll, *hllp, maxnzr - n);
     *hllp += maxnzr - n;
 }
 
@@ -125,7 +125,7 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
     if (nzr == NULL) {
         return 1;
     }
-    __get_nonzeros(mm, nzr);
+    get_nonzeros(mm, nzr);
 
     int hacks_num = mm->num_rows / hack_size;
     if (mm->num_rows % hack_size) {
@@ -138,7 +138,7 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
         free(nzr);
         return 1;
     }
-    int size = __get_data_size(nzr, hack_size, mm->num_rows);
+    int size = get_data_size(nzr, hack_size, mm->num_rows);
     hll->data = malloc(size * get_element_size(mm));
     if (hll->data == NULL) {
         free(nzr);
@@ -171,9 +171,9 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
         }
         // maxznr is the maximum number of non-zeros in the current hack -i.e.
         // maxznr = max(nzr[lo], nzr[lo+1], ..., nzr[lo+hack_size-1])
-        int maxnzr = __max(nzr, lo, lo + hack_size);
+        int maxnzr = max(nzr, lo, lo + hack_size);
         for (int i = 0; i < hack_size; ++i) {
-            __read_row(mm, &mmp, hll, &hllp, maxnzr);
+            read_row(mm, &mmp, hll, &hllp, maxnzr);
         }
         hll->offsets[offp++] = hllp;
         lo += hack_size;

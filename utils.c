@@ -43,7 +43,7 @@ static inline int __lt(int *rows, int *cols, int i, int j) {
     return rows[i] < rows[j] || rows[i] == rows[j] && cols[i] < cols[j];
 }
 
-int __partition(int *rows, int *cols, void *values, int lo, int hi, struct MatrixMarket *mm) {
+static int partition(int *rows, int *cols, void *values, int lo, int hi, struct MatrixMarket *mm) {
     int pivot = hi;
     int i = lo;
     for (int j = lo; j < hi; ++j) {
@@ -60,20 +60,20 @@ int __partition(int *rows, int *cols, void *values, int lo, int hi, struct Matri
     return i;
 }
 
-void __sort(int *rows, int *cols, void *values, int lo, int hi, struct MatrixMarket *mm) {
+static void aux_sort(int *rows, int *cols, void *values, int lo, int hi, struct MatrixMarket *mm) {
     if (lo >= hi || lo < 0) {
         return;
     }
-    int p = __partition(rows, cols, values, lo, hi, mm);
-    __sort(rows, cols, values, lo, p - 1, mm);
-    __sort(rows, cols, values, p + 1, hi, mm);
+    int p = partition(rows, cols, values, lo, hi, mm);
+    aux_sort(rows, cols, values, lo, p - 1, mm);
+    aux_sort(rows, cols, values, p + 1, hi, mm);
 }
 
 void sort(int *rows, int *cols, void *values, int n, struct MatrixMarket *mm) {
-    __sort(rows, cols, values, 0, n - 1, mm);
+    aux_sort(rows, cols, values, 0, n - 1, mm);
 }
 
-void unpack(struct MatrixMarket *mm, int real_nz) {
+static void unpack(struct MatrixMarket *mm, int real_nz) {
     void *values = malloc(real_nz * get_element_size(mm));
     int *rows = malloc(real_nz * sizeof(int));
     int *cols = malloc(real_nz * sizeof(int));
@@ -113,7 +113,7 @@ void unpack(struct MatrixMarket *mm, int real_nz) {
     mm->nz = real_nz;
 }
 
-int parse_rows(FILE *f, struct MatrixMarket *mm) {
+static int parse_rows(FILE *f, struct MatrixMarket *mm) {
     int *rows = malloc(mm->nz * sizeof(int));
     int *cols = malloc(mm->nz * sizeof(int));
     void *values = malloc(mm->nz * get_element_size(mm));
@@ -141,10 +141,10 @@ int parse_rows(FILE *f, struct MatrixMarket *mm) {
     mm->cols = cols;
     mm->data = values;
     if (mm->nz != real_nz && mm_is_symmetric(mm->typecode)) {
-        printf("parsing a symmetric matrix: updating real number of non-zero values: from %d to %d!\n", mm->nz, real_nz);
+        printf("parsing a symmetric matrix, real number of non-zero values goes from %d to %d\n", mm->nz, real_nz);
         unpack(mm, real_nz);
     } else if (!mm_is_symmetric(mm->typecode) && mm->nz != real_nz) {
-        printf("non-zero count found in .mtx banner mismatch with the number of non-zeros counted\n");
+        printf("expected %d non-zeros values but got %d\n", mm->nz, real_nz);
         return 1;
     }
     return 0;
@@ -160,18 +160,18 @@ int parse_rows(FILE *f, struct MatrixMarket *mm) {
 int read_mtx(const char *path, struct MatrixMarket *mm) {
     FILE* f = fopen(path, "r");
     if (f == NULL) {
-        printf("Cannot open file %s\n", path);
+        printf("cannot open file %s\n", path);
         return 1;
     }
     
     if (mm_read_banner(f, &(mm->typecode)) != 0) {
-        printf("Could not process Matrix Market banner.\n");
+        printf("could not process Matrix Market banner\n");
         return 1;
     }
 
     if (mm_is_complex(mm->typecode) && mm_is_matrix(mm->typecode) && mm_is_sparse(mm->typecode)) {
-        printf("Sorry, this application does not support ");
-        printf("Market Market type: [%s]\n", mm_typecode_to_str(mm->typecode));
+        printf("sorry, this application does not support ");
+        printf("matrix market type: [%s]\n", mm_typecode_to_str(mm->typecode));
         return 1;
     }
 
@@ -194,7 +194,6 @@ double *d_random(int n) {
     for (int i = 0; i < n; i++) {
         v[i] = (double)rand() / RAND_MAX;
     }
-    perror(strerror(errno));
     return v;
     
 }
