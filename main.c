@@ -5,6 +5,7 @@
 #include "spmv_seq.h"
 #include "spmv_openmp.h"
 #include <errno.h>
+#include <math.h>
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,6 +92,13 @@ int main(int argc, char *argv[])
         return 1;
     }
     
+    struct component **results;
+    int chunk_size = ceil(((double)sm.num_rows) / num_threads);
+    if (init_component_arrays(&results, num_threads, chunk_size)) {
+        printf("malloc failed while allocating space for temporary results\n");
+        return 1;
+    }
+
     omp_set_num_threads(num_threads);
     srand(42);
     double *r = malloc(sm.num_cols * sizeof(double));
@@ -98,7 +106,7 @@ int main(int argc, char *argv[])
     double sum_of_times = 0;
     for (int i = 0; i < num_iterations; i++) {
         clock_t start = clock();
-        if (d_spmv_csr_par_slow(r, &sm, v, sm.num_cols)) {
+        if (d_spmv_csr_par(r, results, &sm, v, sm.num_cols)) {
             return 1;
         }
         clock_t end = clock();

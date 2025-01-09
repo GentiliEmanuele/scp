@@ -57,7 +57,13 @@ int d_spmv_csr_par(double *res, struct csr *csr, double *v, int n) {
         return 1;
     }
 
-    int num_threads = 12;
+    int num_threads;
+#pragma omp parallel
+{
+    if (omp_get_thread_num() == 0) {
+        num_threads = omp_get_num_threads();
+    }
+}
     struct component **results;
 
     int chunk_size = ceil(((double)csr->num_rows) / num_threads);
@@ -105,7 +111,6 @@ int i_spmv_csr_par(int *res, struct csr *csr, int *v, int n) {
 {
     if (omp_get_thread_num() == 0) {
         num_threads = omp_get_num_threads();
-        // printf("executing sparse matrix vector product with %d threads\n", omp_get_num_threads());
     }
 }
 
