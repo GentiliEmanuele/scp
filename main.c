@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < num_iterations; i++) {
         clock_t start = clock();
-        if (d_spmv_csr_par_slow(r, &sm, v, sm.num_cols)) {
+        if (d_spmv_csr_par(r, &sm, v, sm.num_cols)) {
             return 1;
         }
         clock_t end = clock();

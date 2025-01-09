@@ -44,20 +44,20 @@ static void unpack(struct MatrixMarket *mm, int real_nz) {
     int *packed_rows = mm->rows;
     int *packed_cols = mm->cols;
     void *packed_values = mm->data;
-    struct vec3d item;
     for (int k = 0; k < mm->nz; ++k) {
         int i = packed_rows[k];
         int j = packed_cols[k];
-        item.row = i;
-        item.col = j;
-        item.pos = k;
+        struct vec3d *item = &items[p];
+        item->row = i;
+        item->col = j;
+        item->pos = k;
         memcpy(&items[p], &item, sizeof(item));
         ++p;
         if (i != j) {
-            item.row = j;
-            item.col = i;
-            item.pos = k;
-            memcpy(&items[p], &item, sizeof(item));
+            struct vec3d *item = &items[p];
+            item->row = j;
+            item->col = i;
+            item->pos = k;
             ++p;
         }
     }
@@ -82,23 +82,27 @@ static void unpack(struct MatrixMarket *mm, int real_nz) {
     mm->nz = real_nz;
 }
 
-static int parse_rows(FILE *f, struct MatrixMarket *mm) {
+static void readline(FILE *f, const char *fmt, int *row, int *col, void *val, struct MatrixMarket *mm) {
+    if (!mm_is_pattern(mm->typecode)) {
+            if (mm_is_real(mm->typecode)) {
+                fscanf(f, fmt, col, row, ((double*)val));
+            } else {
+                fscanf(f, fmt, col, row, ((int*)val));
+            }
+        } else {
+            fscanf(f, fmt, col, row);
+            *((double*)val) = 1.0;
+        }
+}
+
+static int parse_rows_ns(FILE *f, struct MatrixMarket *mm) {
     int *rows = malloc(mm->nz * sizeof(int));
     int *cols = malloc(mm->nz * sizeof(int));
     void *values = malloc(mm->nz * get_element_size(mm));
     char *fmt = get_format_string(mm);
     int real_nz = 0;
     for (int i = 0; i < mm->nz; i++) {
-        if (!mm_is_pattern(mm->typecode)) {
-            if (mm_is_real(mm->typecode)) {
-                fscanf(f, fmt, &cols[i], &rows[i], &((double*)values)[i]);
-            } else {
-                fscanf(f, fmt, &cols[i], &rows[i], &((int*)values)[i]);
-            }
-        } else {
-            fscanf(f, fmt, &cols[i], &rows[i]);
-            ((double*)values)[i] = 1.0;
-        }
+        
         rows[i]--;  /* adjust from 1-based to 0-based */
         cols[i]--;
         real_nz++;
@@ -117,6 +121,15 @@ static int parse_rows(FILE *f, struct MatrixMarket *mm) {
         return 1;
     }
     return 0;
+}
+
+static int parse_rows(FILE *f, struct MatrixMarket *mm) {
+    
+    if (mm_is_symmetric(mm->typecode)) {
+        return parse_rows_sy(f, mm);
+    } else {
+        return parse_rows_ns(f, mm);
+    }
 }
 
 /**
