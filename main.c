@@ -69,6 +69,81 @@ void write_hll(struct hll *hll, struct MatrixMarket *mm) {
     printf("|\n");
 }
 
+int d_test(struct csr sm, int num_iterations, struct MatrixMarket mm, int verbose) {
+    double *r = malloc(sm.num_cols * sizeof(double));
+    double *s = malloc(sm.num_cols * sizeof(double));
+    double *v = d_random(sm.num_cols);
+    for (int i = 0; i < sm.num_cols; i++) {
+        v[i] = 1.0;
+    }
+    double sum_of_times = 0;
+
+    for (int i = 0; i < num_iterations; i++) {
+        clock_t start = clock();
+        if (d_spmv_csr_seq(r, &sm, v, sm.num_cols)) {
+            return 1;
+        }
+        clock_t end = clock();
+        sum_of_times += (end - start) / (double)CLOCKS_PER_SEC;  
+    }
+
+    double mean_time = sum_of_times / num_iterations;
+    double flops = (2 * mm.nz) / (double)mean_time;
+    printf("mean time: %f s\n", mean_time);
+    printf("MEGA FLOPS=%f\n", flops * 1e-6);
+
+    if (d_spmv_csr_seq(s, &sm, v, sm.num_cols)) {
+        return 1;
+    }
+    if (d_veceq(r, s, sm.num_cols, 1e-6)) {
+        printf("test failed\n");
+    }
+    if (verbose) {
+        for (int i = 0; i < sm.num_cols; ++i) {
+            printf("%f ", r[i]);
+        }
+        printf("\n");
+    }
+}
+
+int i_test(struct csr sm, int num_iterations, struct MatrixMarket mm, int verbose) {
+    int *r = malloc(sm.num_cols * sizeof(int));
+    int *s = malloc(sm.num_cols * sizeof(int));
+    int *v = i_random(sm.num_cols);
+    for (int i = 0; i < sm.num_cols; i++) {
+        v[i] = 1;
+    }
+
+    double sum_of_times = 0;
+
+    for (int i = 0; i < num_iterations; i++) {
+        clock_t start = clock();
+        if (i_spmv_csr_seq(r, &sm, v, sm.num_cols)) {
+            return 1;
+        }
+        clock_t end = clock();
+        sum_of_times += (end - start) / (double)CLOCKS_PER_SEC;  
+    }
+
+    double mean_time = sum_of_times / num_iterations;
+    double flops = (2 * mm.nz) / (double)mean_time;
+    printf("mean time: %f s\n", mean_time);
+    printf("MEGA FLOPS=%f\n", flops * 1e-6);
+
+    if (i_spmv_csr_seq(s, &sm, v, sm.num_cols)) {
+        return 1;
+    }
+    if (i_veceq(r, s, sm.num_cols)) {
+        printf("test failed\n");
+    }
+    if(verbose) {
+        for (int i = 0; i < sm.num_cols; ++i) {
+            printf("%d ", r[i]);
+        }
+        printf("\n");   
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 4) {
@@ -101,43 +176,18 @@ int main(int argc, char *argv[])
     }
     
     write_csr_mtx(&sm, &mm);
-
     omp_set_num_threads(num_threads);
     srand(42);
-    double *r = malloc(sm.num_cols * sizeof(double));
-    double *s = malloc(sm.num_cols * sizeof(double));
-    double *v = d_random(sm.num_cols);
-    for (int i = 0; i < sm.num_cols; i++) {
-        v[i] = 0.0;
-    }
-    v[2] = 1;
-    double sum_of_times = 0;
-
-    for (int i = 0; i < num_iterations; i++) {
-        clock_t start = clock();
-        if (d_spmv_csr_par(r, &sm, v, sm.num_cols)) {
+    if (mm_is_real(mm.typecode)) {
+        if (d_test(sm, num_iterations, mm, 0)) {
+            printf("An error occured while test the funtion for double matrix");
             return 1;
         }
-        clock_t end = clock();
-        sum_of_times += (end - start) / (double)CLOCKS_PER_SEC;  
+    } else {
+        if (i_test(sm, num_iterations, mm, 0)) {
+            printf("An error occured while test the funtion for int matrix");
+            return 1;
+        }
     }
-
-    double mean_time = sum_of_times / num_iterations;
-    double flops = (2 * mm.nz) / (double)mean_time;
-    printf("mean time: %f s\n", mean_time);
-    printf("MEGA FLOPS=%f\n", flops * 1e-6);
-
-    if (d_spmv_csr_seq(s, &sm, v, sm.num_cols)) {
-        return 1;
-    }
-    if (d_veceq(r, s, sm.num_cols, 1e-6)) {
-        printf("test failed\n");
-    }
-
-    for (int i = 0; i < sm.num_cols; ++i) {
-        printf("%f ", s[i]);
-    }
-    printf("\n");
-    
     return 0;
 }

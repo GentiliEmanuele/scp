@@ -163,9 +163,25 @@ double *d_random(int n) {
     
 }
 
+int *i_random(int n) {
+    int *v = malloc(n * sizeof(int));
+    for (int i = 0; i < n; i++) {
+        v[i] = rand();
+    }
+    return v;
+}
+
 int d_veceq(double *u, double *v, int n, double eps) {
     for (int i = 0; i < n; i++) {
         if (fabs(u[i] - v[i]) > eps)
+            return 1;
+    }
+    return 0;
+}
+
+int i_veceq(int *u, int *v, int n) {
+    for (int i = 0; i < n; i++) {
+        if (u[i] != v[i])
             return 1;
     }
     return 0;
