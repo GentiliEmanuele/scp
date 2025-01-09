@@ -50,8 +50,8 @@ static void readline(FILE *f, const char *fmt, int *row, int *col, void *val, in
         ((double*)val)[vp] = 1.0;
     }
     // Adjust from one-based to zero-based
-    *col--;
-    *row--;
+    *col -= 1;
+    *row -= 1;
 }
 
 static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {

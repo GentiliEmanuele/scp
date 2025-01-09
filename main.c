@@ -12,6 +12,12 @@
 #include <string.h>
 #include <time.h>
 
+void write_mrk_mtx(struct MatrixMarket *mm) {
+    for (int i = 0; i < mm->nz; ++i) {
+        printf("%d %d %f\n", mm->rows[i], mm->cols[i], ((double*)mm->data)[i]);
+    }
+}
+
 void write_csr_mtx(struct csr *csr, struct MatrixMarket *mm) {
     for (int i = 0; i < csr->num_rows; ++i) {
         int num_cols = csr->row_pointer[i+1] - csr->row_pointer[i];
@@ -19,13 +25,13 @@ void write_csr_mtx(struct csr *csr, struct MatrixMarket *mm) {
     }
     for (int i = 0; i < csr->num_rows; ++i) {
         for (int j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {
-            int col = csr->col_index[j]+1;
+            int col = csr->col_index[j];
             if (mm_is_integer(mm->typecode)) {
                 int v = ((int*)csr->data)[j];
-                printf("%d %d %d\n", i+1, col, v);
+                printf("%d %d %d\n", i, col, v);
             } else {
                 double v = ((double*)csr->data)[j];
-                printf("%d %d %f\n", i+1, col, v);
+                printf("%d %d %f\n", i, col, v);
             }
         }
     }
@@ -86,6 +92,8 @@ int main(int argc, char *argv[])
     }
     printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm.num_rows, mm.num_cols, mm.nz);
   
+    write_mrk_mtx(&mm);
+
     struct csr sm;
     if (csr_init(&sm, &mm)) { 
         printf("cannot read matrix into CSR format\n");
