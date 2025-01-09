@@ -7,6 +7,25 @@
 #include <errno.h>
 #include <string.h>
 
+struct vec3d {
+    int row;
+    int col;
+    int pos;
+};
+
+static int inline lt(struct vec3d *a, struct vec3d *b) {
+    if (a->row < b->row) {
+        return 1;
+    } else if ((a->row == b->row) && (a -> col < b -> col)) {
+        return 1;
+    }
+    return 0;
+}
+
+static int qcmp(const void *a, const void *b) {
+    return lt((struct vec3d*)a, (struct vec3d*)b);
+}
+
 static inline char *get_format_string(struct MatrixMarket *m) {
     if (mm_is_pattern(m->typecode)) {
         return "%d %d\n";
@@ -19,97 +38,47 @@ static inline char *get_format_string(struct MatrixMarket *m) {
     }
 }
 
-static inline void iswap(int *v1, int i, int j) {
-    int t = v1[i];
-    v1[i] = v1[j];
-    v1[j] = t;
-}
-
-static inline void dswap(double *v1, int i, int j) {
-    double t = v1[i];
-    v1[i] = v1[j];
-    v1[j] = t;
-}
-
-static inline void vswap(void *v, int i, int j, struct MatrixMarket *mm) {
-    if (mm_is_pattern(mm->typecode) || mm_is_real(mm->typecode)) {
-        dswap((double*)v, i, j);
-    } else {
-        iswap((int*)v, i, j);
-    }
-}
-
-static inline int __lt(int *rows, int *cols, int i, int j) {
-    return rows[i] < rows[j] || rows[i] == rows[j] && cols[i] < cols[j];
-}
-
-static int partition(int *rows, int *cols, void *values, int lo, int hi, struct MatrixMarket *mm) {
-    int pivot = hi;
-    int i = lo;
-    for (int j = lo; j < hi; ++j) {
-        if (__lt(rows, cols, j, pivot)) {
-            iswap(rows, i, j);
-            iswap(cols, i, j);
-            vswap(values, i, j, mm);
-            i += 1;
-        }
-    }
-    iswap(rows, i, hi);
-    iswap(cols, i, hi);
-    vswap(values, i, hi, mm);
-    return i;
-}
-
-static void aux_sort(int *rows, int *cols, void *values, int lo, int hi, struct MatrixMarket *mm) {
-    if (lo >= hi || lo < 0) {
-        return;
-    }
-    int p = partition(rows, cols, values, lo, hi, mm);
-    aux_sort(rows, cols, values, lo, p - 1, mm);
-    aux_sort(rows, cols, values, p + 1, hi, mm);
-}
-
-void sort(int *rows, int *cols, void *values, int n, struct MatrixMarket *mm) {
-    aux_sort(rows, cols, values, 0, n - 1, mm);
-}
-
 static void unpack(struct MatrixMarket *mm, int real_nz) {
-    void *values = malloc(real_nz * get_element_size(mm));
-    int *rows = malloc(real_nz * sizeof(int));
-    int *cols = malloc(real_nz * sizeof(int));
+    struct vec3d *items = malloc(real_nz * sizeof(struct vec3d));
     int p = 0;
     int *packed_rows = mm->rows;
     int *packed_cols = mm->cols;
     void *packed_values = mm->data;
+    struct vec3d item;
     for (int k = 0; k < mm->nz; ++k) {
         int i = packed_rows[k];
         int j = packed_cols[k];
-        rows[p] = i;
-        cols[p] = j;
-        if (mm_is_integer(mm->typecode)) {
-            ((int*)values)[p] = ((int*)packed_values)[k];
-        } else if (mm_is_real(mm->typecode)) {
-            ((double*)values)[p] = ((double*)packed_values)[k];
-        }
+        item.row = i;
+        item.col = j;
+        item.pos = k;
+        memcpy(&items[p], &item, sizeof(item));
         ++p;
         if (i != j) {
-            rows[p] = j;
-            cols[p] = i;
-            if (mm_is_integer(mm->typecode)) {
-                ((int*)values)[p] = ((int*)packed_values)[k];
-            } else if (mm_is_real(mm->typecode)) {
-                ((double*)values)[p] = ((double*)packed_values)[k];
-            }
+            item.row = j;
+            item.col = i;
+            item.pos = k;
+            memcpy(&items[p], &item, sizeof(item));
             ++p;
         }
     }
-    sort(rows, cols, values, real_nz, mm);
+    qsort(items, real_nz, sizeof(struct vec3d), qcmp);
     free(mm->rows);
     free(mm->cols);
-    free(mm->data);
-    mm->rows = rows;
-    mm->cols = cols;
-    mm->data = values;
+    void *old_data = mm->data;
+    mm->rows = malloc(real_nz * sizeof(int));
+    mm->cols = malloc(real_nz * sizeof(int));
+    int element_size = get_element_size(mm);
+    mm->data = malloc(real_nz * element_size);
+    for (int i = 0; i < real_nz; ++i) {
+        mm->rows[i] = items[i].row;
+        mm->cols[i] = items[i].col;
+        if (mm_is_real(mm->typecode) || mm_is_pattern(mm->typecode)) {
+            memcpy(&((double*)mm->data)[i], &((double*)mm->data)[items[i].pos], element_size);
+        } else {
+            memcpy(&((int*)mm->data)[i], &((int*)mm->data)[items[i].pos], element_size);            
+        }
+    }
+    free(old_data);
     mm->nz = real_nz;
 }
 

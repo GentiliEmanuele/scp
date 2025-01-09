@@ -92,29 +92,33 @@ int main(int argc, char *argv[])
         return 1;
     }
     
-    struct component **results;
-    int chunk_size = ceil(((double)sm.num_rows) / num_threads);
-    if (init_component_arrays(&results, num_threads, chunk_size)) {
-        printf("malloc failed while allocating space for temporary results\n");
-        return 1;
-    }
-
     omp_set_num_threads(num_threads);
     srand(42);
     double *r = malloc(sm.num_cols * sizeof(double));
+    double *s = malloc(sm.num_cols * sizeof(double));
     double *v = d_random(sm.num_cols);
     double sum_of_times = 0;
+
     for (int i = 0; i < num_iterations; i++) {
         clock_t start = clock();
-        if (d_spmv_csr_par(r, results, &sm, v, sm.num_cols)) {
+        if (d_spmv_csr_par_slow(r, &sm, v, sm.num_cols)) {
             return 1;
         }
         clock_t end = clock();
         sum_of_times += (end - start) / (double)CLOCKS_PER_SEC;  
     }
+
     double mean_time = sum_of_times / num_iterations;
     double flops = (2 * mm.nz) / (double)mean_time;
     printf("mean time: %f s\n", mean_time);
     printf("MEGA FLOPS=%f\n", flops * 1e-6);
+
+    if (d_spmv_csr_seq(s, &sm, v, sm.num_cols)) {
+        return 1;
+    }
+    if (d_veceq(r, s, sm.num_cols, 1e-6)) {
+        printf("test failed\n");
+    }
+    
     return 0;
 }
