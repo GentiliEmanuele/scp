@@ -92,11 +92,17 @@ int main(int argc, char *argv[])
         return 1;
     }
     
+    write_csr_mtx(&sm, &mm);
+
     omp_set_num_threads(num_threads);
     srand(42);
     double *r = malloc(sm.num_cols * sizeof(double));
     double *s = malloc(sm.num_cols * sizeof(double));
     double *v = d_random(sm.num_cols);
+    for (int i = 0; i < sm.num_cols; i++) {
+        v[i] = 0.0;
+    }
+    v[2] = 1;
     double sum_of_times = 0;
 
     for (int i = 0; i < num_iterations; i++) {
@@ -119,6 +125,11 @@ int main(int argc, char *argv[])
     if (d_veceq(r, s, sm.num_cols, 1e-6)) {
         printf("test failed\n");
     }
+
+    for (int i = 0; i < sm.num_cols; ++i) {
+        printf("%f ", s[i]);
+    }
+    printf("\n");
     
     return 0;
 }

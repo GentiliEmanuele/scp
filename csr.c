@@ -22,14 +22,7 @@ int csr_init(struct csr *csr, struct MatrixMarket *m) {
         free(csr->row_pointer);
         return 1;
     }
-    if (mm_is_pattern(m->typecode)) {
-        double *data = (double*)m->data;
-        for (int i = 0; i < m -> nz; i ++) {
-            data[i] = 1;          
-        }
-    } else {
-        memcpy(csr->data, m->data, m->nz * get_element_size(m));
-    }
+    memcpy(csr->data, m->data, m->nz * get_element_size(m));
     memcpy(csr->col_index, m->cols, m->nz * sizeof(int));
     csr->row_pointer[0] = 0;
     int prev = m->rows[0];

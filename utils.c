@@ -81,9 +81,9 @@ static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {
         mm->rows[i] = items[i].row;
         mm->cols[i] = items[i].col;
         if (mm_is_real(mm->typecode) || mm_is_pattern(mm->typecode)) {
-            memcpy(&((double*)mm->data)[i], &((double*)mm->data)[items[i].pos], element_size);
+            memcpy(&((double*)mm->data)[i], &((double*)data)[items[i].pos], element_size);
         } else {
-            memcpy(&((int*)mm->data)[i], &((int*)mm->data)[items[i].pos], element_size);            
+            memcpy(&((int*)mm->data)[i], &((int*)data)[items[i].pos], element_size);            
         }
     }
     free(data);
