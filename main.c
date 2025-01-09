@@ -64,33 +64,33 @@ void write_hll(struct hll *hll, struct MatrixMarket *mm) {
 
 int main(int argc, char *argv[])
 {
-    if (--argc != 3) {
+    if (argc != 4) {
         printf("see usage: program num_threads num_runs matrix\n");
-        return -1;
-    }
-    long num_threads = strtol(argv[argc--], NULL, 10);
-    if (num_threads == 0) {
-        printf("an error (%s) occurred while parsing num_threads: %s\n", argv[argc+1]);
         return 1;
     }
-    long num_iterations = strtol(argv[argc--], NULL, 10);
+    long num_threads = strtol(argv[--argc], NULL, 10);
+    if (num_threads == 0) {
+        printf("an error occurred while parsing string %s to long\n", argv[argc]);
+        return 1;
+    }
+    long num_iterations = strtol(argv[--argc], NULL, 10);
     if (num_iterations == 0) {
-        printf("The error (%s) occured while convert string to long", strerror);
-        return -1;
+        printf("an error occured while parsing string %s to long", argv[argc]);
+        return 1;
     }
     struct MatrixMarket mm;
-    if (read_mtx(argv[argc--], &mm)) {
-        printf("Read error!");
+    if (read_mtx(argv[--argc], &mm)) {
+        printf("cannot read matrix: %s\n", argv[argc]);
         return 1;
     }
-    printf("matrix has %d rows and %d cols\n", mm.num_rows, mm.num_cols);
-    
+    printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm.num_rows, mm.num_cols, mm.nz);
+  
     struct csr sm;
     if (csr_init(&sm, &mm)) { 
         printf("cannot read matrix into CSR format\n");
         return 1;
     }
-
+    
     omp_set_num_threads(num_threads);
     srand(42);
     double *r = malloc(sm.num_cols * sizeof(double));
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     double sum_of_times = 0;
     for (int i = 0; i < num_iterations; i++) {
         clock_t start = clock();
-        if (d_spmv_csr_par(r, &sm, v, sm.num_cols)) {
+        if (d_spmv_csr_par_slow(r, &sm, v, sm.num_cols)) {
             return 1;
         }
         clock_t end = clock();

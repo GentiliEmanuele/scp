@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/main.exe",
-            "args": ["${workspaceFolder}/data/1138_bus.mtx"],
+            "args": ["${workspaceFolder}/data/ad23560.mtx", "10", "6"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
