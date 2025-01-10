@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/main.exe",
-            "args": ["${workspaceFolder}/data/3x3.mtx", "10", "6"],
+            "args": ["${workspaceFolder}/data/3x3.mtx", "10", "1"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

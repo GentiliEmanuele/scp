@@ -12,9 +12,15 @@
 #include <string.h>
 #include <time.h>
 
-void write_mrk_mtx(struct MatrixMarket *mm) {
+void d_write_mrk_mtx(struct MatrixMarket *mm) {
     for (int i = 0; i < mm->nz; ++i) {
         printf("%d %d %f\n", mm->rows[i], mm->cols[i], ((double*)mm->data)[i]);
+    }
+}
+
+void i_write_mrk_mtx(struct MatrixMarket *mm) {
+    for (int i = 0; i < mm->nz; ++i) {
+        printf("%d %d %d\n", mm->rows[i], mm->cols[i], ((int*)mm->data)[i]);
     }
 }
 
@@ -69,7 +75,7 @@ void write_hll(struct hll *hll, struct MatrixMarket *mm) {
     printf("|\n");
 }
 
-int d_test(struct csr sm, int num_iterations, struct MatrixMarket mm, int verbose) {
+int d_csr_test(struct csr sm, int num_iterations, struct MatrixMarket mm, int verbose) {
     double *r = malloc(sm.num_cols * sizeof(double));
     double *s = malloc(sm.num_cols * sizeof(double));
     double *v = d_random(sm.num_cols);
@@ -104,9 +110,10 @@ int d_test(struct csr sm, int num_iterations, struct MatrixMarket mm, int verbos
         }
         printf("\n");
     }
+    return 0;
 }
 
-int i_test(struct csr sm, int num_iterations, struct MatrixMarket mm, int verbose) {
+int i_csr_test(struct csr sm, int num_iterations, struct MatrixMarket mm, int verbose) {
     int *r = malloc(sm.num_cols * sizeof(int));
     int *s = malloc(sm.num_cols * sizeof(int));
     int *v = i_random(sm.num_cols);
@@ -142,6 +149,38 @@ int i_test(struct csr sm, int num_iterations, struct MatrixMarket mm, int verbos
         }
         printf("\n");   
     }
+    return 0;
+}
+
+int d_hll_test(struct hll sm, int num_iterations, struct MatrixMarket mm, int verbose) {
+    double *r = malloc(sm.num_cols * sizeof(double));
+    double *v = d_random(sm.num_cols);
+    for (int i = 0; i < sm.num_cols; i++) {
+        v[i] = 1.0;
+    }
+    double sum_of_times = 0;
+
+    for (int i = 0; i < num_iterations; i++) {
+        clock_t start = clock();
+        if (d_spmv_hll_seq(r, &sm, v, sm.num_cols)) {
+            return 1;
+        }
+        clock_t end = clock();
+        sum_of_times += (end - start) / (double)CLOCKS_PER_SEC;  
+    }
+
+    double mean_time = sum_of_times / num_iterations;
+    double flops = (2 * mm.nz) / (double)mean_time;
+    printf("mean time: %f s\n", mean_time);
+    printf("MEGA FLOPS=%f\n", flops * 1e-6);
+
+    if (verbose) {
+        for (int i = 0; i < sm.num_cols; ++i) {
+            printf("%f ", r[i]);
+        }
+        printf("\n");
+    }
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -167,8 +206,18 @@ int main(int argc, char *argv[])
     }
     printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm.num_rows, mm.num_cols, mm.nz);
   
-    write_mrk_mtx(&mm);
+    d_write_mrk_mtx(&mm);
+    struct hll sm;
+    if (hll_init(&sm, 2, &mm)) {
+        printf("cannot read matrix into HLL format\n");
+        return 1;
+    }
+    if (d_hll_test(sm, num_iterations, mm, 1)) {
+        printf("An error occured while test the funtion for double matrix\n");
+        return 1;
+    }
 
+/*
     struct csr sm;
     if (csr_init(&sm, &mm)) { 
         printf("cannot read matrix into CSR format\n");
@@ -179,15 +228,16 @@ int main(int argc, char *argv[])
     omp_set_num_threads(num_threads);
     srand(42);
     if (mm_is_real(mm.typecode)) {
-        if (d_test(sm, num_iterations, mm, 0)) {
+        if (d_csr_test(sm, num_iterations, mm, 0)) {
             printf("An error occured while test the funtion for double matrix");
             return 1;
         }
     } else {
-        if (i_test(sm, num_iterations, mm, 0)) {
+        if (i_csr_test(sm, num_iterations, mm, 0)) {
             printf("An error occured while test the funtion for int matrix");
             return 1;
         }
     }
+    */
     return 0;
 }
