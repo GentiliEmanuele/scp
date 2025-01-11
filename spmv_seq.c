@@ -38,7 +38,7 @@ int d_spmv_hll_seq(double *res, struct hll *hll, double *v, int n) {
     int z = 0;
     int start = 0;
     double *data = (double *)hll->data;
-    int sum = 0;
+    double sum = 0.0;
     int k = 0;
     int i, j;
     for (i = 0; i < hll->data_num; i += (hll->offsets[z+1] - hll->offsets[z]) / hll->hacks_num) {
