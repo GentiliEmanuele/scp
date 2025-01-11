@@ -10,6 +10,9 @@
         "time.h": "c",
         "math.h": "c",
         "stdlib.h": "c",
-        "errno.h": "c"
+        "errno.h": "c",
+        "vec.h": "c",
+        "spmv_seq.h": "c",
+        "omp_test.h": "c"
     }
 }

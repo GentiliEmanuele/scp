@@ -1,4 +1,4 @@
-#include "fmt.h"
+#include "utils.h"
 #include "mmio.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -150,5 +150,6 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
     mm->nz = nz;
     int ir = parse_rows(f, mm);
     fclose(f);
+    printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm->num_rows, mm->num_cols, mm->nz);
     return ir;
 }
