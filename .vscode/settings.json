@@ -6,6 +6,10 @@
         "string.h": "c",
         "spmv_openmp.h": "c",
         "omp.h": "c",
-        "limits": "c"
+        "limits": "c",
+        "time.h": "c",
+        "math.h": "c",
+        "stdlib.h": "c",
+        "errno.h": "c"
     }
 }

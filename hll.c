@@ -111,6 +111,14 @@ static void read_row(struct MatrixMarket *mm, int *mmp, struct hll *hll, int *hl
     *hllp += maxnzr - n;
 }
 
+static inline int get_hacks_num(int num_rows, int hack_size) {
+    int hacks_num = num_rows / hack_size;
+    if (num_rows % hack_size) {
+        hacks_num++;
+    }
+    return hacks_num;
+}
+
 /**
  * @param hll (out)      HLL representation of matrix mm
  * @param hack_size (in) number of rows of each hack
@@ -126,22 +134,20 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
         return 1;
     }
     get_nonzeros(mm, hll->nzr);
-    int hacks_num = mm->num_rows / hack_size;
-    if (mm->num_rows % hack_size) {
-        hacks_num++;
-    }
-    hll->hacks_num = hacks_num;
 
-    hll->offsets = malloc((hacks_num + 1) * sizeof(int));
+    hll->hacks_num = get_hacks_num(hll->num_rows, hack_size);
+    hll->offsets = malloc((hll->hacks_num + 1) * sizeof(int));
     if (hll->offsets == NULL) {
         free(hll->nzr);
         return 1;
     }
+
     int size = get_data_size(hll->nzr, hack_size, mm->num_rows);
     hll->data = malloc(size * get_element_size(mm));
     if (hll->data == NULL) {
         free(hll->nzr);
         free(hll->offsets);
+        hll->nzr = NULL;
         hll->offsets = NULL;
         return 1;
     }
@@ -149,17 +155,31 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
     if (hll->col_index == NULL) {
         free(hll->nzr);
         free(hll->offsets);
-        hll->offsets = NULL;
         free(hll->data);
+        hll->nzr = NULL;
+        hll->offsets = NULL;
         hll->data = NULL;
         return 1;
     }
-    
+    hll->max_nzr = malloc(sizeof(int) * hll->hacks_num);
+    if (hll->max_nzr == NULL) {
+        free(hll->nzr);
+        free(hll->offsets);
+        free(hll->data);
+        free(hll->col_index);
+        hll->nzr = NULL;
+        hll->offsets = NULL;
+        hll->data = NULL;
+        hll->col_index = NULL;
+        return 1;
+    }
+    int maxnzrp = 0;
     int hllp = 0;
     int offp = 0;
     int mmp = 0;
     int lo = 0; // current number of rows read
     hll->offsets[offp++] = 0;
+    int hacks_num = hll->hacks_num;
     while (hacks_num-- > 0) {
         // the last hack may have an hack_size smaller than the other
         // because the number of rows of a matrix may not be a multiple o hack_size
@@ -174,6 +194,7 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
         for (int i = 0; i < hack_size; ++i) {
             read_row(mm, &mmp, hll, &hllp, maxnzr);
         }
+        hll->max_nzr[maxnzrp++] = maxnzr;
         hll->offsets[offp++] = hllp;
         lo += hack_size;
     }
@@ -182,11 +203,14 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
         printf("elements read mismatch with elements expected\n");
         free(hll->nzr);
         free(hll->offsets);
-        hll->offsets = NULL;
         free(hll->data);
-        hll->data = NULL;
         free(hll->col_index);
+        free(hll->max_nzr);
+        hll->nzr = NULL;
+        hll->offsets = NULL;
+        hll->data = NULL;
         hll->col_index = NULL;
+        hll->max_nzr = NULL;
         return 1;
     } else {
         hll->data_num = hllp;

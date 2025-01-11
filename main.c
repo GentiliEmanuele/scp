@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "spmv_seq.h"
 #include "spmv_openmp.h"
+#include "vec.h"
 #include <errno.h>
 #include <math.h>
 #include <omp.h>
@@ -162,7 +163,7 @@ int d_hll_test(struct hll sm, int num_iterations, struct MatrixMarket mm, int ve
 
     for (int i = 0; i < num_iterations; i++) {
         clock_t start = clock();
-        if (d_spmv_hll_seq(r, &sm, v, sm.num_cols)) {
+        if (d_spmv_hll_par(r, &sm, v, sm.num_cols)) {
             return 1;
         }
         clock_t end = clock();
@@ -175,10 +176,13 @@ int d_hll_test(struct hll sm, int num_iterations, struct MatrixMarket mm, int ve
     printf("MEGA FLOPS=%f\n", flops * 1e-6);
 
     if (verbose) {
-        for (int i = 0; i < sm.num_cols; ++i) {
-            printf("%f ", r[i]);
+        double *s = d_random(sm.num_cols);
+        struct csr csr;
+        csr_init(&csr, &mm);
+        d_spmv_csr_seq(s, &csr, v, sm.num_cols);
+        if (d_veceq(r, s, sm.num_cols, 1e-6)) {
+            printf("test failed!\n");
         }
-        printf("\n");
     }
     return 0;
 }
@@ -212,7 +216,7 @@ int main(int argc, char *argv[])
         printf("cannot read matrix into HLL format\n");
         return 1;
     }
-
+    write_hll(&sm, &mm);
     if (d_hll_test(sm, num_iterations, mm, 1)) {
         printf("An error occured while test the funtion for double matrix\n");
         return 1;
