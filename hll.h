@@ -12,6 +12,7 @@ typedef struct hll
     int  hacks_num;
     int  num_rows;
     int  num_cols;
+    int *nzr;
 } hll_t;
 
 int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm);

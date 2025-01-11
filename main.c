@@ -183,14 +183,6 @@ int d_hll_test(struct hll sm, int num_iterations, struct MatrixMarket mm, int ve
     return 0;
 }
 
-void print_hll(struct hll hll) {
-    double *data = hll.data;
-    for (int i = 0; i < hll.data_num; i++) {
-        printf("% d : %f \t", i, data[i]);
-    }
-    printf("\n");
-}
-
 int main(int argc, char *argv[])
 {
     if (argc != 4) {
@@ -221,12 +213,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+ 
+    /*
     if (d_hll_test(sm, num_iterations, mm, 1)) {
         printf("An error occured while test the funtion for double matrix\n");
         return 1;
     }
 
-
+*/
 /*
     struct csr sm;
     if (csr_init(&sm, &mm)) { 
