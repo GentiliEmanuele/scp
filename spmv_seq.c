@@ -41,17 +41,13 @@ int d_spmv_hll_seq(double *res, struct hll *hll, double *v, int n) {
     double sum = 0.0;
     int k = 0;
     int i, j;
-    for (i = 0; i < hll->data_num; i += (hll->offsets[z+1] - hll->offsets[z]) / hll->hacks_num) {
-        sum = 0;
-        if (i >= hll->offsets[z+1]) {
-            z++;
+    for (i = 0; i < hll->num_rows; i++) {
+        sum = 0.0;
+        for (j = start; j - start < hll->nzr[i]; j++) {
+            sum += data[j] * v[hll->col_index[j]];
         }
-        for (j = i; j < start + (hll->offsets[z+1] - hll->offsets[z]) / hll->hacks_num; j++) {
-            sum += data[j]*v[hll->col_index[j]];
-        }
-        res[k] = sum;
-        k++;
-        start = j;
+        res[i] = sum;
+        start = hll->nzr[i];
     }
     return 0;
 }

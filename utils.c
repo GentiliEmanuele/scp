@@ -14,7 +14,7 @@ struct vec3d {
 };
 
 static inline int lt(struct vec3d *a, struct vec3d *b) {
-    if ((a->row < b->row) || (a->row == b-> row) || (a->col < b->col)){
+    if ((a->row < b->row) || (a->row == b-> row) && (a->col < b->col)){
         return -1;
     } else if ((a->row == b->row) && (a -> col == b -> col)) {
         return 0;

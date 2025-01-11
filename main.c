@@ -213,14 +213,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
- 
-    /*
     if (d_hll_test(sm, num_iterations, mm, 1)) {
         printf("An error occured while test the funtion for double matrix\n");
         return 1;
     }
 
-*/
 /*
     struct csr sm;
     if (csr_init(&sm, &mm)) { 
