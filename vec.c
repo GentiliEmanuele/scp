@@ -39,7 +39,6 @@ inline int *i_random(int n) {
 inline int d_veceq(double *u, double *v, int n, double eps) {
     for (int i = 0; i < n; i++) {
         if (fabs(u[i] - v[i]) > eps) {
-            printf("failed at %d\n", i);
             return 0;
         }
     }
