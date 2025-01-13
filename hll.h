@@ -12,7 +12,6 @@ typedef struct hll
     int  hacks_num;
     int  num_rows;
     int  num_cols;
-    int *nzr;
     int *max_nzr;
 } hll_t;
 
