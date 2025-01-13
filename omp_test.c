@@ -26,7 +26,7 @@ int test_csr(const char *file) {
     if (d_spmv_csr_par(p, &sm, v, n)) {
         return 1;
     }
-    if (d_spmv_csr_seq(p, &sm, v, n)) {
+    if (d_spmv_csr_seq(s, &sm, v, n)) {
         return 1;
     }
     if (!d_veceq(p, s, n, EPS)) {
@@ -59,11 +59,11 @@ int test_hll(const char *file, int hack_size) {
     if (d_spmv_hll_par(p, &sm, v, n)) {
         return 1;
     }
-    if (d_spmv_csr_seq(p, &csr, v, n)) {
+    if (d_spmv_csr_seq(s, &csr, v, n)) {
         return 1;
     }
     if (!d_veceq(p, s, n, EPS)) {
-        printf("(csr) test failed for matrix: %s\n", file);
+        printf("(hll) test failed for matrix: %s\n", file);
         return 1;
     }
     return 0;
