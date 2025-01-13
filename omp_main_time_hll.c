@@ -11,6 +11,7 @@ int main(int argc, char **argv) {
     int num_thread = atoi(argv[--argc]);
     int hack_Size = atoi(argv[--argc]);
     char *path = argv[--argc];
-    omp_time_hll(path, hack_Size, num_iterations, num_thread);
+    time_measurement_t time_measurement;
+    omp_time_hll(path, hack_Size, num_iterations, num_thread, &time_measurement);
     return 0;
 }

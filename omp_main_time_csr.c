@@ -11,6 +11,7 @@ int main(int argc, char **argv) {
     int num_iterations = atoi(argv[--argc]);
     int num_threads = atoi(argv[--argc]);
     char *path = argv[--argc];
-    omp_time_csr(path, num_iterations, num_threads);
+    time_measurement_t time_measurement;
+    omp_time_csr(path, num_iterations, num_threads, &time_measurement);
     return 0;
 }

@@ -7,15 +7,21 @@
 #include <stdlib.h>
 #include <time.h>
 
-void omp_time_csr(const char *file, int num_runs, int num_threads) {
+/**
+ * @param file (in)                 path to the matrix
+ * @param num_runs (in)             number of times the measurement must be performed
+ * @param num_thread (in)           number of thread used in the executions
+ * @param time_measurement (out)    struct that contain the measurement
+ * */  
+int omp_time_csr(const char *file, int num_runs, int num_threads, time_measurement_t *time_measurement) {
     struct MatrixMarket mm;
     if (read_mtx(file, &mm)) {
-        return;
+        return 1;
     }
 
     struct csr sm;
     if (csr_init(&sm, &mm)) {
-        return;
+        return 1;
     }
     
     int n = sm.num_cols;
@@ -33,22 +39,26 @@ void omp_time_csr(const char *file, int num_runs, int num_threads) {
         clock_t end = clock();
         sum += (end - start) / (double)CLOCKS_PER_SEC;  
     }
-
-    double mean_time = sum / num_runs;
-    double flops = (2 * mm.nz) / (double)mean_time;
-    printf("mean time: %f s\n", mean_time);
-    printf("MEGA FLOPS=%f\n", flops * 1e-6);
+    time_measurement -> mean_time = sum / num_runs;
+    time_measurement -> flops = (2 * mm.nz) / (double)time_measurement->mean_time;
 }
 
-void omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads) {
+/**
+ * @param file (in)                 path to the matrix
+ * @param hack_size                 number of rows of each hack
+ * @param num_runs (in)             number of times the measurement must be performed
+ * @param num_thread (in)           number of thread used in the executions
+ * @param time_measurement (out)    struct that contain the measurement
+ * */  
+int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads, time_measurement_t *time_measurement) {
     struct MatrixMarket mm;
     if (read_mtx(file, &mm)) {
-        return;
+        return 1;
     }
 
     struct hll sm;
     if (hll_init(&sm, hack_size, &mm)) {
-        return;
+        return 1;
     }
     
     int n = sm.num_cols;
@@ -66,9 +76,6 @@ void omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads
         clock_t end = clock();
         sum += (end - start) / (double)CLOCKS_PER_SEC;  
     }
-
-    double mean_time = sum / num_runs;
-    double flops = (2 * mm.nz) / (double)mean_time;
-    printf("mean time: %f s\n", mean_time);
-    printf("MEGA FLOPS=%f\n", flops * 1e-6);
+    time_measurement -> mean_time = sum / num_runs;
+    time_measurement -> flops = (2 * mm.nz) / (double)time_measurement->mean_time * 1e-6;
 }
