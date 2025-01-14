@@ -17,4 +17,11 @@ typedef struct hll
 } hll_t;
 
 int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm);
+
+inline void hll_cleanup(struct hll *hll) {
+    free(hll->offsets);
+    free(hll->col_index);
+    free(hll->data);
+    free(hll->max_nzr);
+}
 #endif

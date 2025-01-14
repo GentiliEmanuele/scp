@@ -41,6 +41,9 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
     }
     time_measurement -> mean_time = sum / num_runs;
     time_measurement -> flops = (2 * mm.nz) / (double)time_measurement->mean_time;
+    time_measurement->num_threads = num_threads;
+    time_measurement->num_runs = num_runs;
+    csr_cleanup(&sm);
 }
 
 /**
@@ -60,7 +63,7 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     if (hll_init(&sm, hack_size, &mm)) {
         return 1;
     }
-    
+    csr
     int n = sm.num_cols;
     double *r = d_zeros(n);
     srand(42);
@@ -78,4 +81,7 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     }
     time_measurement -> mean_time = sum / num_runs;
     time_measurement -> flops = (2 * mm.nz) / (double)time_measurement->mean_time * 1e-6;
+    time_measurement->num_threads = num_threads;
+    time_measurement->num_runs = num_runs;
+    hll_cleanup(&sm);
 }

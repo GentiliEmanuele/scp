@@ -4,6 +4,8 @@
 typedef struct time_measurement {
     double mean_time;
     double flops;
+    int num_threads;
+    int num_runs;
 } time_measurement_t;
 
 int omp_time_csr(const char *file, int num_runs, int num_threads, time_measurement_t *time_measurement);

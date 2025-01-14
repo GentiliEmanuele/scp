@@ -12,4 +12,10 @@ typedef struct csr
 } csr_t;
 
 int csr_init(struct csr *csr, struct MatrixMarket *m);
+
+inline void csr_cleanup(struct csr *csr) {
+    free(csr->col_index);
+    free(csr->row_pointer);
+    free(csr->data);
+}
 #endif
