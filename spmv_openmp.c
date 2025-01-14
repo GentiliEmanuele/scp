@@ -53,6 +53,7 @@ int d_spmv_hll_par(double *res, struct hll *hll, double *v, int n) {
         return 1;
     }
 
+    int rows = R(hll, 0);
     #pragma omp for schedule(static)
     for (int h = 0; h < hll->hacks_num; ++h) {
         for (int r = 0; r < R(hll, h); ++r) {
@@ -61,11 +62,7 @@ int d_spmv_hll_par(double *res, struct hll *hll, double *v, int n) {
                 int k = hll->offsets[h] + r * hll->max_nzr[h] + j;
                 sum += data[k] * v[hll->col_index[k]];
             }
-            if (h > 0 && h == hll->hacks_num - 1) {
-                res[h * R(hll, h - 1) + r] = sum;
-            } else {
-                res[h * R(hll, h) + r] = sum;
-            }
+            res[rows * h + r] = sum;
         }
     }
     return 0;
@@ -78,6 +75,7 @@ int i_spmv_hll_par(int *res, struct hll *hll, int *v, int n) {
         return 1;
     }
 
+    int rows = R(hll, 0);
     #pragma omp for schedule(static)
     for (int h = 0; h < hll->hacks_num; ++h) {
         for (int r = 0; r < R(hll, h); ++r) {
@@ -86,7 +84,7 @@ int i_spmv_hll_par(int *res, struct hll *hll, int *v, int n) {
                 int k = hll->offsets[h] + r * hll->max_nzr[h] + j;
                 sum += data[k] * v[hll->col_index[k]];
             }
-            res[h * R(hll, h) + r] = sum;
+            res[h * rows + r] = sum;
         }
     }
     return 0;
