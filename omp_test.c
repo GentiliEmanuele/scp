@@ -17,6 +17,7 @@ int test_csr(const char *file) {
 
     struct csr sm;
     if (csr_init(&sm, &mm)) {
+        mtx_cleanup(&mm);
         return 1;
     }
 
@@ -25,15 +26,23 @@ int test_csr(const char *file) {
     double *p = d_zeros(n);
     double *s = d_zeros(n);
     if (d_spmv_csr_par(p, &sm, v, n)) {
+        mtx_cleanup(&mm);
+        csr_cleanup(&sm);
         return 1;
     }
     if (d_spmv_csr_seq(s, &sm, v, n)) {
+        mtx_cleanup(&mm);
+        csr_cleanup(&sm);
         return 1;
     }
     if (!d_veceq(p, s, n, EPS)) {
+        mtx_cleanup(&mm);
+        csr_cleanup(&sm);
         printf("(csr) test failed for matrix: %s\n", file);
         return 1;
     }
+    mtx_cleanup(&mm);
+    csr_cleanup(&sm);
     return 0;
 }
 
@@ -45,11 +54,14 @@ int test_hll(const char *file, int hack_size) {
 
     struct csr csr;
     if (csr_init(&csr, &mm)) {
+        mtx_cleanup(&mm);
         return 1;
     }
 
     struct hll sm;
     if (hll_init(&sm, hack_size, &mm)) {
+        csr_cleanup(&csr);
+        mtx_cleanup(&mm);
         return 1;
     }
 
@@ -58,14 +70,26 @@ int test_hll(const char *file, int hack_size) {
     double *p = d_zeros(n);
     double *s = d_zeros(n);
     if (d_spmv_hll_par(p, &sm, v, n)) {
+        csr_cleanup(&csr);
+        mtx_cleanup(&mm);
+        hll_cleanup(&sm);
         return 1;
     }
     if (d_spmv_csr_seq(s, &csr, v, n)) {
+        csr_cleanup(&csr);
+        mtx_cleanup(&mm);
+        hll_cleanup(&sm);
         return 1;
     }
     if (!d_veceq(p, s, n, EPS)) {
         printf("(hll) test failed for matrix: %s\n", file);
+        csr_cleanup(&csr);
+        mtx_cleanup(&mm);
+        hll_cleanup(&sm);
         return 1;
     }
+    csr_cleanup(&csr);
+    mtx_cleanup(&mm);
+    hll_cleanup(&sm);
     return 0;
 }

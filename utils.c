@@ -266,3 +266,9 @@ void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_threa
     if (line)
         free(line);
 }
+
+void mtx_cleanup(struct MatrixMarket *mm) {
+    free(mm->cols);
+    free(mm->data);
+    free(mm->rows);
+}

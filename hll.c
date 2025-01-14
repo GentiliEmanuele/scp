@@ -221,3 +221,10 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
         return 0;
     }
 }
+
+void hll_cleanup(struct hll *hll) {
+    free(hll->offsets);
+    free(hll->col_index);
+    free(hll->data);
+    free(hll->max_nzr);
+}

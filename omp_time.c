@@ -21,6 +21,7 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
 
     struct csr sm;
     if (csr_init(&sm, &mm)) {
+        mtx_cleanup(&mm);
         return 1;
     }
     
@@ -44,6 +45,7 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
     time_measurement->num_threads = num_threads;
     time_measurement->num_runs = num_runs;
     csr_cleanup(&sm);
+    mtx_cleanup(&mm);
 }
 
 /**
@@ -61,9 +63,9 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
 
     struct hll sm;
     if (hll_init(&sm, hack_size, &mm)) {
+        mtx_cleanup(&mm);
         return 1;
     }
-    csr
     int n = sm.num_cols;
     double *r = d_zeros(n);
     srand(42);
@@ -83,5 +85,6 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     time_measurement -> flops = (2 * mm.nz) / (double)time_measurement->mean_time * 1e-6;
     time_measurement->num_threads = num_threads;
     time_measurement->num_runs = num_runs;
+    mtx_cleanup(&mm);
     hll_cleanup(&sm);
 }

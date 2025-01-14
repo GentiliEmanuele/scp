@@ -1,6 +1,7 @@
 #ifndef HLL_H
 #define HLL_H
 #include "utils.h"
+#include <stdlib.h>
 
 typedef struct hll
 {
@@ -18,10 +19,5 @@ typedef struct hll
 
 int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm);
 
-inline void hll_cleanup(struct hll *hll) {
-    free(hll->offsets);
-    free(hll->col_index);
-    free(hll->data);
-    free(hll->max_nzr);
-}
+void hll_cleanup(struct hll *hll);
 #endif
