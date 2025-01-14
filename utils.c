@@ -201,7 +201,7 @@ void read_and_measure_csr(char *path, int num_runs, int num_thread, char *out_pa
         omp_time_csr(line, num_runs, num_thread, &time_measurement);
         fprintf(results, "Matrix name: %s\tMFLOPS %f\tmean_time %f\tnum_thread %d\tnum_runs %d\n",
             line,
-            time_measurement.flops,
+            time_measurement.flops * 1e-6,
             time_measurement.mean_time,
             time_measurement.num_threads,
             time_measurement.num_runs);
@@ -246,7 +246,7 @@ void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_threa
             line[last_idx] = '\0';
         }
         omp_time_hll(line, hack_size, num_runs, num_thread, &time_measurement);
-        fprintf(results, "Matrix name: %s \t MFLOPS %f \t mean_time %f\n", line, time_measurement.flops, time_measurement.mean_time);
+        fprintf(results, "Matrix name: %s \t MFLOPS %f \t mean_time %f\n", line, time_measurement.flops * 1e-6, time_measurement.mean_time);
         fprintf(results, "Matrix name: %s\tMFLOPS %f\tmean_time %f\tnum_thread %d\tnum_runs %d\n",
             line,
             time_measurement.flops,

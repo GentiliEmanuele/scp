@@ -85,7 +85,7 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
         sum += (end - start) / (double)CLOCKS_PER_SEC;  
     }
     time_measurement -> mean_time = sum / num_runs;
-    time_measurement -> flops = (2 * mm.nz) / (double)time_measurement->mean_time * 1e-6;
+    time_measurement -> flops = (2 * mm.nz) / (double)time_measurement->mean_time;
     time_measurement->num_threads = num_threads;
     time_measurement->num_runs = num_runs;
     mtx_cleanup(&mm);
