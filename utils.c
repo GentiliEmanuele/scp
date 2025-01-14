@@ -178,8 +178,9 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
  * @param path (in)                 path of the file to read
  * @param num_runs (in)             number of times the measurement must be performed
  * @param num_thread (in)           number of thread used in the executions
+ * @param out_path (in)             path to write results
  */
-void read_and_measure_csr(char *path, int num_runs, int num_thread) {
+void read_and_measure_csr(char *path, int num_runs, int num_thread, char *out_path) {
     if (path == NULL) {
         printf("Please pass the path to the file with matrices name\n");
         return;
@@ -193,7 +194,7 @@ void read_and_measure_csr(char *path, int num_runs, int num_thread) {
     size_t read;
     char *line = NULL;
     time_measurement_t time_measurement;
-    FILE *results = fopen("results_csr.txt", "w");
+    FILE *results = fopen(out_path, "w");
     if (results == NULL) {
         printf("cannot open file %s\n", path);
         return;   
@@ -219,8 +220,9 @@ void read_and_measure_csr(char *path, int num_runs, int num_thread) {
  * @param hack_size (in)            number of rows of each hack
  * @param num_runs (in)             number of times the measurement must be performed
  * @param num_thread (in)           number of thread used in the executions
+ * @param out_path (in)             path to write results
  */
-void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_thread) {
+void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_thread, char *out_path) {
     if (path == NULL) {
         printf("Please pass the path to the file with matrices name\n");
         return;
@@ -234,7 +236,7 @@ void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_threa
     size_t read;
     char *line = NULL;
     time_measurement_t time_measurement;
-    FILE *results = fopen("results_hll.txt", "w");
+    FILE *results = fopen(out_path, "w");
     if (results == NULL) {
         printf("cannot open file %s\n", path);
         return;   

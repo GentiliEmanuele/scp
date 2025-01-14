@@ -23,6 +23,6 @@ static inline int get_element_size(struct MatrixMarket *m) {
 }
 
 int read_mtx(const char *path, struct MatrixMarket *mm);
-void read_and_measure_csr(char *path, int num_runs, int num_thread);
-void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_thread);
+void read_and_measure_csr(char *path, int num_runs, int num_thread, char *out_path);
+void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_thread, char *out_path);
 #endif
