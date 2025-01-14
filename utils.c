@@ -62,7 +62,7 @@ static int readline(FILE *f, const char *fmt, int *row, int *col, void *val, int
 }
 
 static int __parse_rows(FILE *f, struct MatrixMarket *mm, int is_symmetric) {
-    struct vec3d *items = malloc(2 * mm->nz * sizeof(struct vec3d));
+    struct vec3d *items = malloc((is_symmetric ? 2 : 1) * mm->nz * sizeof(struct vec3d));
     void *data = malloc(mm->nz * get_element_size(mm));
     char *fmt = get_format_string(mm);
     int real_nz = 0;
