@@ -43,7 +43,10 @@ int i_spmv_csr_par(int *res, struct csr *csr, int *v, int n) {
 
 // Calculates number of rows of hack h
 static inline int R(struct hll *hll, int h) {
-    return (hll->offsets[h+1] - hll->offsets[h]) / hll->max_nzr[h];
+    if (hll->hacks_num - 1 == h && hll->num_rows % hll->hack_size) {
+        return hll->num_rows % hll->hack_size;
+    }
+    return hll->hack_size;
 }
 
 int d_spmv_hll_par(double *res, struct hll *hll, double *v, int n) {
