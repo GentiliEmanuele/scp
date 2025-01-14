@@ -61,7 +61,7 @@ int d_spmv_hll_par(double *res, struct hll *hll, double *v, int n) {
                 int k = hll->offsets[h] + r * hll->max_nzr[h] + j;
                 sum += data[k] * v[hll->col_index[k]];
             }
-            if (h == hll->hacks_num - 1) {
+            if (h > 0 && h == hll->hacks_num - 1) {
                 res[h * R(hll, h - 1) + r] = sum;
             } else {
                 res[h * R(hll, h) + r] = sum;

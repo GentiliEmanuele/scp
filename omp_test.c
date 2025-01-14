@@ -1,4 +1,5 @@
 #include "csr.h"
+#include "fmt.h"
 #include "hll.h"
 #include "omp_test.h"
 #include "spmv_openmp.h"

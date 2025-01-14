@@ -135,6 +135,11 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
     }
     get_nonzeros(mm, nzr);
 
+    if (hack_size > hll->num_rows) {
+        hack_size = hll->num_rows;
+        printf("warning: hack size > number of rows, hack size set to number of rows\n");
+    }
+
     hll->hacks_num = get_hacks_num(hll->num_rows, hack_size);
     hll->offsets = malloc((hll->hacks_num + 1) * sizeof(int));
     if (hll->offsets == NULL) {
