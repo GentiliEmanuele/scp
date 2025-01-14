@@ -96,7 +96,7 @@ static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {
         }
     }
     free(data);
-    printf("parsing symmetric matrix: number of non-zeros goes from %d to %d (explicit zero = %d)\n", mm->nz, real_nz, count_zero);
+    printf("symmetric matrix: number of non-zeros goes from %d to %d (explicit zeros = %d)\n", mm->nz, real_nz, count_zero);
     mm->nz = real_nz;
     return 0;
 }
@@ -107,12 +107,20 @@ static int parse_rows_ns(FILE *f, struct MatrixMarket *mm) {
     int *cols = malloc(mm->nz * sizeof(int));
     void *values = malloc(mm->nz * get_element_size(mm));
     char *fmt = get_format_string(mm);
+    int real_nz = 0;
+    int explicit_zeros = 0;
     for (int i = 0; i < mm->nz; i++) {
-        readline(f, fmt, &rows[i], &cols[i], values, i, mm);
+        if (readline(f, fmt, &rows[i], &cols[i], values, i, mm)) {
+            ++real_nz;
+        } else {
+            ++explicit_zeros;
+        }
     }
     mm->rows = rows;
     mm->cols = cols;
     mm->data = values;
+    mm->nz = real_nz;
+    printf("non symmetric matrix: number of non-zeros %d (explicit zeros = %d)\n", mm->nz, explicit_zeros);
     return 0;
 }
 
@@ -158,6 +166,7 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
     mm->num_rows = M;
     mm->num_cols = N;
     mm->nz = nz;
+    printf("matrix %s:\n", path);
     int ir = parse_rows(f, mm);
     fclose(f);
     printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm->num_rows, mm->num_cols, mm->nz);

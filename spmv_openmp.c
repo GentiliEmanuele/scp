@@ -68,38 +68,6 @@ int d_spmv_hll_par(double *res, struct hll *hll, double *v, int n) {
     return 0;
 }
 
-static int __d_spmv_hll_aux(double *res, struct hll *hll, double *v, int n, int rows, int h0, int h1) {
-    double *data = hll->data;
-    #pragma omp for schedule(static) collapse(2)
-    for (int h = h0; h < h1; ++h) {
-        for (int r = 0; r < rows; ++r) {
-            double sum = 0.0;
-            for (int j = 0; j < hll->max_nzr[h]; ++j) {
-                int k = hll->offsets[h] + r * hll->max_nzr[h] + j;
-                sum += data[k] * v[hll->col_index[k]];
-            }
-            res[rows * h + r] = sum;
-        }
-    }
-}
-
-int d_spmv_hll_par2(double *res, struct hll *hll, double *v, int n) {
-    double *data = hll->data;
-    if (n != hll->num_cols) {
-        printf("matrix and vector must have the same number of columns\n");
-        return 1;
-    }
-
-    int rows = R(hll, 0);
-    if (hll->num_rows % hll->hack_size) {
-        __d_spmv_hll_aux(res, hll, v, n, rows, 0, hll->hacks_num - 1);
-        __d_spmv_hll_aux(res, hll, v, n, rows, hll->hacks_num - 1, hll->hacks_num);
-    } else {
-        __d_spmv_hll_aux(res, hll, v, n, rows, 0, hll->hacks_num);
-    }
-    return 0;
-}
-
 int i_spmv_hll_par(int *res, struct hll *hll, int *v, int n) {
     int *data = hll->data;
     if (n != hll->num_cols) {
