@@ -1,10 +1,13 @@
 #include "utils.h"
 #include "mmio.h"
+#include "omp_time.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include "omp_time.h"
+
+#define IS_ZERO(x) (fabs(x) == 0.0)
 
 struct vec3d {
     int row;
@@ -38,12 +41,15 @@ static inline char *get_format_string(struct MatrixMarket *m) {
     }
 }
 
-static void readline(FILE *f, const char *fmt, int *row, int *col, void *val, int vp, struct MatrixMarket *mm) {
+static int readline(FILE *f, const char *fmt, int *row, int *col, void *val, int vp, struct MatrixMarket *mm) {
+    int not_zero = 1;
     if (!mm_is_pattern(mm->typecode)) {
         if (mm_is_real(mm->typecode)) {
-            fscanf(f, fmt, col, row, &((double*)val)[vp]);            
+            fscanf(f, fmt, col, row, &((double*)val)[vp]);
+            not_zero = !IS_ZERO(((double*)val)[vp]);
         } else {
             fscanf(f, fmt, col, row, &((int*)val)[vp]);
+            not_zero = ((int*)val)[vp] != 0;
         }
     } else {
         fscanf(f, fmt, col, row);
@@ -52,6 +58,7 @@ static void readline(FILE *f, const char *fmt, int *row, int *col, void *val, in
     // Adjust from one-based to zero-based
     *col -= 1;
     *row -= 1;
+    return not_zero;
 }
 
 static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {
@@ -59,18 +66,20 @@ static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {
     void *data = malloc(mm->nz * get_element_size(mm));
     char *fmt = get_format_string(mm);
     int real_nz = 0;
+    int count_zero = 0;
     for (int k = 0; k < mm->nz; ++k) {
-        readline(f, fmt, &items[real_nz].row, &items[real_nz].col, data, k, mm);
-        items[real_nz].pos = k;
-        int i = items[real_nz].row;
-        int j = items[real_nz].col;
-        ++real_nz;
-        if (i != j) {
-            items[real_nz].row = j;
-            items[real_nz].col = i;
+        if (readline(f, fmt, &items[real_nz].row, &items[real_nz].col, data, k, mm)) {
             items[real_nz].pos = k;
+            int i = items[real_nz].row;
+            int j = items[real_nz].col;
             ++real_nz;
-        }
+            if (i != j) {
+                items[real_nz].row = j;
+                items[real_nz].col = i;
+                items[real_nz].pos = k;
+                ++real_nz;
+            }
+        } else count_zero ++;
     }
     qsort(items, real_nz, sizeof(struct vec3d), qcmp);
     mm->rows = malloc(real_nz * sizeof(int));
@@ -87,7 +96,7 @@ static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {
         }
     }
     free(data);
-    printf("parsing symmetric matrix: number of non-zeros goes from %d to %d\n", mm->nz, real_nz);
+    printf("parsing symmetric matrix: number of non-zeros goes from %d to %d (explicit zero = %d)\n", mm->nz, real_nz, count_zero);
     mm->nz = real_nz;
     return 0;
 }
@@ -156,7 +165,7 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
 }
 
 /**
- * read_and_test -- read a file in txt with the name of all matrices to use
+ * read_and_test for csr format-- read a file in txt with the name of all matrices to use
  * @param path (in)                 path of the file to read
  * @param num_runs (in)             number of times the measurement must be performed
  * @param num_thread (in)           number of thread used in the executions
@@ -195,6 +204,13 @@ void read_and_measure_csr(char *path, int num_runs, int num_thread) {
         free(line);
 }
 
+/**
+ * read_and_test for hll format-- read a file in txt with the name of all matrices to use
+ * @param path (in)                 path of the file to read
+ * @param hack_size (in)            number of rows of each hack
+ * @param num_runs (in)             number of times the measurement must be performed
+ * @param num_thread (in)           number of thread used in the executions
+ */
 void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_thread) {
     if (path == NULL) {
         printf("Please pass the path to the file with matrices name\n");

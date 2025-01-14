@@ -13,6 +13,8 @@
         "errno.h": "c",
         "vec.h": "c",
         "spmv_seq.h": "c",
-        "omp_test.h": "c"
+        "omp_test.h": "c",
+        "omp_time.h": "c",
+        "csr.h": "c"
     }
 }

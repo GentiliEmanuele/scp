@@ -137,6 +137,7 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
 
     if (hack_size > hll->num_rows) {
         hack_size = hll->num_rows;
+        hll->hack_size = hack_size;
         printf("warning: hack size > number of rows, hack size set to number of rows\n");
     }
 
