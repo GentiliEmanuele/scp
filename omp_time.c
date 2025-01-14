@@ -25,8 +25,9 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
         return 1;
     }
     
+    int m = sm.num_rows;
     int n = sm.num_cols;
-    double *r = d_zeros(n);
+    double *r = d_zeros(m);
     srand(42);
     double *v = d_random(n);
     
@@ -66,8 +67,10 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
         mtx_cleanup(&mm);
         return 1;
     }
+
+    int m = sm.num_rows;
     int n = sm.num_cols;
-    double *r = d_zeros(n);
+    double *r = d_zeros(m);
     srand(42);
     double *v = d_random(n);
     

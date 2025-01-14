@@ -21,10 +21,12 @@ int test_csr(const char *file) {
         return 1;
     }
 
+    // write_csr_mtx(&sm, &mm);
+    int m = sm.num_rows;
     int n = sm.num_cols;
     double *v = d_random(n);
-    double *p = d_zeros(n);
-    double *s = d_zeros(n);
+    double *p = d_zeros(m);
+    double *s = d_zeros(m);
     if (d_spmv_csr_par(p, &sm, v, n)) {
         mtx_cleanup(&mm);
         csr_cleanup(&sm);
@@ -65,10 +67,11 @@ int test_hll(const char *file, int hack_size) {
         return 1;
     }
 
+    int m = sm.num_rows;
     int n = sm.num_cols;
     double *v = d_random(n);
-    double *p = d_zeros(n);
-    double *s = d_zeros(n);
+    double *p = d_zeros(m);
+    double *s = d_zeros(m);
     if (d_spmv_hll_par(p, &sm, v, n)) {
         csr_cleanup(&csr);
         mtx_cleanup(&mm);

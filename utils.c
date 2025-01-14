@@ -45,14 +45,14 @@ static int readline(FILE *f, const char *fmt, int *row, int *col, void *val, int
     int not_zero = 1;
     if (!mm_is_pattern(mm->typecode)) {
         if (mm_is_real(mm->typecode)) {
-            fscanf(f, fmt, col, row, &((double*)val)[vp]);
+            fscanf(f, fmt, row, col, &((double*)val)[vp]);
             not_zero = !IS_ZERO(((double*)val)[vp]);
         } else {
-            fscanf(f, fmt, col, row, &((int*)val)[vp]);
+            fscanf(f, fmt, row, col, &((int*)val)[vp]);
             not_zero = ((int*)val)[vp] != 0;
         }
     } else {
-        fscanf(f, fmt, col, row);
+        fscanf(f, fmt, row, col);
         ((double*)val)[vp] = 1.0;
     }
     // Adjust from one-based to zero-based
@@ -61,25 +61,27 @@ static int readline(FILE *f, const char *fmt, int *row, int *col, void *val, int
     return not_zero;
 }
 
-static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {
+static int __parse_rows(FILE *f, struct MatrixMarket *mm, int is_symmetric) {
     struct vec3d *items = malloc(2 * mm->nz * sizeof(struct vec3d));
     void *data = malloc(mm->nz * get_element_size(mm));
     char *fmt = get_format_string(mm);
     int real_nz = 0;
-    int count_zero = 0;
-    for (int k = 0; k < mm->nz; ++k) {
+    int explicit_zeros = 0;
+    for (int k = 0; k < mm->nz; k++) {
         if (readline(f, fmt, &items[real_nz].row, &items[real_nz].col, data, k, mm)) {
-            items[real_nz].pos = k;
             int i = items[real_nz].row;
             int j = items[real_nz].col;
+            items[real_nz].pos = k;
             ++real_nz;
-            if (i != j) {
+            if (is_symmetric && i != j) {
                 items[real_nz].row = j;
                 items[real_nz].col = i;
                 items[real_nz].pos = k;
                 ++real_nz;
             }
-        } else count_zero ++;
+        } else {
+            ++explicit_zeros;
+        }
     }
     qsort(items, real_nz, sizeof(struct vec3d), qcmp);
     mm->rows = malloc(real_nz * sizeof(int));
@@ -89,39 +91,30 @@ static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {
     for (int i = 0; i < real_nz; ++i) {
         mm->rows[i] = items[i].row;
         mm->cols[i] = items[i].col;
+        int pos = items[i].pos;
         if (mm_is_real(mm->typecode) || mm_is_pattern(mm->typecode)) {
-            memcpy(&((double*)mm->data)[i], &((double*)data)[items[i].pos], element_size);
+            ((double*)mm->data)[i] = ((double*)data)[pos];
         } else {
-            memcpy(&((int*)mm->data)[i], &((int*)data)[items[i].pos], element_size);            
+            ((int*)mm->data)[i] = ((int*)data)[pos];            
         }
     }
+    free(items);
     free(data);
-    printf("symmetric matrix: number of non-zeros goes from %d to %d (explicit zeros = %d)\n", mm->nz, real_nz, count_zero);
+    if (is_symmetric)
+        printf("symmetric matrix: number of non-zeros goes from %d to %d (explicit zeros = %d)\n", mm->nz, real_nz, explicit_zeros);
+    else
+        printf("non symmetric matrix: number of non-zeros %d (explicit zeros = %d)\n", mm->nz, explicit_zeros);
     mm->nz = real_nz;
     return 0;
 }
 
+static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {
+    return __parse_rows(f, mm, 1);
+}
+
 
 static int parse_rows_ns(FILE *f, struct MatrixMarket *mm) {
-    int *rows = malloc(mm->nz * sizeof(int));
-    int *cols = malloc(mm->nz * sizeof(int));
-    void *values = malloc(mm->nz * get_element_size(mm));
-    char *fmt = get_format_string(mm);
-    int real_nz = 0;
-    int explicit_zeros = 0;
-    for (int i = 0; i < mm->nz; i++) {
-        if (readline(f, fmt, &rows[i], &cols[i], values, i, mm)) {
-            ++real_nz;
-        } else {
-            ++explicit_zeros;
-        }
-    }
-    mm->rows = rows;
-    mm->cols = cols;
-    mm->data = values;
-    mm->nz = real_nz;
-    printf("non symmetric matrix: number of non-zeros %d (explicit zeros = %d)\n", mm->nz, explicit_zeros);
-    return 0;
+    return __parse_rows(f, mm, 0);
 }
 
 static int parse_rows(FILE *f, struct MatrixMarket *mm) { 

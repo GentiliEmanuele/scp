@@ -29,7 +29,11 @@ int csr_init(struct csr *csr, struct MatrixMarket *m) {
     int k = 1;
     for (int i = 0; i < m->nz; ++i) {
         int curr = m->rows[i];
-        if (prev != curr) {
+        while (curr - prev > 1) {
+            csr->row_pointer[k++] = i;
+            ++prev;
+        }
+        if (curr - prev == 1) {
             prev = curr;
             csr->row_pointer[k++] = i;
         }
