@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include "omp_time.h"
 
 struct vec3d {
     int row;
@@ -152,4 +153,78 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
     fclose(f);
     printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm->num_rows, mm->num_cols, mm->nz);
     return ir;
+}
+
+/**
+ * read_and_test -- read a file in txt with the name of all matrices to use
+ * @param path (in)                 path of the file to read
+ * @param num_runs (in)             number of times the measurement must be performed
+ * @param num_thread (in)           number of thread used in the executions
+ */
+void read_and_measure_csr(char *path, int num_runs, int num_thread) {
+    if (path == NULL) {
+        printf("Please pass the path to the file with matrices name\n");
+        return;
+    }
+    FILE *f = fopen(path, "r");
+    if (f == NULL) {
+        printf("cannot open file %s\n", path);
+        return;
+    }
+    size_t len = 0;
+    size_t read;
+    char *line = NULL;
+    time_measurement_t time_measurement;
+    FILE *results = fopen("results_csr.txt", "w");
+    if (results == NULL) {
+        printf("cannot open file %s\n", path);
+        return;   
+    }
+    while ((read = getline(&line, &len, f)) != -1) {
+        printf("Get time for the matrix %s", line);
+        size_t last_idx = strlen(line) - 1;
+        if( line[last_idx] == '\n' ) {
+            line[last_idx] = '\0';
+        }
+        omp_time_csr(line, num_runs, num_thread, &time_measurement);
+        fprintf(results, "Matrix name: %s \t MFLOPS %f \t mean_time %f\n", line, time_measurement.flops, time_measurement.mean_time);
+    }
+    printf("\n");
+    fclose(f);
+    if (line)
+        free(line);
+}
+
+void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_thread) {
+    if (path == NULL) {
+        printf("Please pass the path to the file with matrices name\n");
+        return;
+    }
+    FILE *f = fopen(path, "r");
+    if (f == NULL) {
+        printf("cannot open file %s\n", path);
+        return;
+    }
+    size_t len = 0;
+    size_t read;
+    char *line = NULL;
+    time_measurement_t time_measurement;
+    FILE *results = fopen("results_hll.txt", "w");
+    if (results == NULL) {
+        printf("cannot open file %s\n", path);
+        return;   
+    }
+    while ((read = getline(&line, &len, f)) != -1) {
+        printf("Get time for the matrix %s", line);
+        size_t last_idx = strlen(line) - 1;
+        if( line[last_idx] == '\n' ) {
+            line[last_idx] = '\0';
+        }
+        omp_time_hll(line, hack_size, num_runs, num_thread, &time_measurement);
+        fprintf(results, "Matrix name: %s \t MFLOPS %f \t mean_time %f\n", line, time_measurement.flops, time_measurement.mean_time);
+    }
+    printf("\n");
+    fclose(f);
+    if (line)
+        free(line);
 }
