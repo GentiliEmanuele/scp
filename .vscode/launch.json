@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/openmp_test_csr.exe",
             // "args": ["${workspaceFolder}/data/names.txt", "12", "5", "data/results.txt"],
-            "args": ["${workspaceFolder}/data/abb313.mtx"],
+            "args": ["${workspaceFolder}/data/dummy.mtx"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
