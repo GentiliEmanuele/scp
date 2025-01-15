@@ -20,20 +20,10 @@ static inline int max(int *v, int lo, int hi_exclusive) {
   * nzr[i] holds the number of nonzeros for the i-th row in mm
   */
 static void get_nonzeros(struct MatrixMarket *mm, int *nzr) {
-    int curr_nz = 0;
-    int prev = mm->rows[0];
-    int k = 0;
+    memset(nzr, 0, sizeof(int) * mm->num_rows);
     for (int i = 0; i < mm->nz; ++i) {
-        int curr = mm->rows[i];
-        if (prev != curr) {
-            prev = curr;
-            nzr[k++] = curr_nz;
-            curr_nz = 0;
-        }
-        curr_nz++;
+        nzr[mm->rows[i]]++; 
     }
-    // the last row is skipped in the loop
-    nzr[k++] = curr_nz;
 }
 
 static int get_data_size(int *nzr, int hack_size, int num_rows) {
