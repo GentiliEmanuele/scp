@@ -13,5 +13,8 @@ openmp_test_hll:
 openmp_time_hll:
 	gcc -g csr.c mmio.c omp_test.c omp_time.c utils.c hll.c fmt.c spmv_openmp.c spmv_seq.c vec.c omp_main_time_hll.c -o openmp_time_hll.exe -fopenmp -lm
 
+temp:
+	gcc -g csr.c mmio.c utils.c hll.c omp_time.c spmv_openmp.c vec.c temp_main.c -o openmp_pytest_hll.exe -fopenmp -lm
+
 clean:
 	rm *.exe

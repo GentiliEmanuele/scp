@@ -21,7 +21,6 @@ int test_csr(const char *file) {
         return 1;
     }
 
-    // write_csr_mtx(&sm, &mm);
     int m = sm.num_rows;
     int n = sm.num_cols;
     double *v = d_random(n);
@@ -48,6 +47,28 @@ int test_csr(const char *file) {
     return 0;
 }
 
+void write_vector(double *v, int n, const char *path) {
+    FILE *f = fopen(path, "w");
+    if (f == NULL) {
+        printf("Error while opening file \n");
+        return;
+    }
+    for (int i = 0; i < n; i++) {
+        fprintf(f, "%f\n", v[i]);
+    }
+}
+
+void read_vector(double *vector, int n, const char *path) {
+    FILE *f = fopen(path, "r");
+    if (f == NULL) {
+        printf("Error while opening file \n");
+        return;
+    }
+    for (int i = 0; i < n; i++) {
+        fscanf(f, "%f", vector[i]);
+    }
+}
+
 int test_hll(const char *file, int hack_size) {
     struct MatrixMarket mm;
     if (read_mtx(file, &mm)) {
@@ -72,6 +93,9 @@ int test_hll(const char *file, int hack_size) {
     double *v = d_random(n);
     double *p = d_zeros(m);
     double *s = d_zeros(m);
+    char path[1024];
+    sprintf(path, "%s.res", file);
+    write_vector(v, n, path);
     if (d_spmv_hll_par(p, &sm, v, n)) {
         csr_cleanup(&csr);
         mtx_cleanup(&mm);
