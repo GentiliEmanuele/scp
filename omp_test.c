@@ -91,7 +91,6 @@ int test_hll(const char *file, int hack_size) {
         hll_cleanup(&sm);
         return 1;
     }
-    write_hll(&sm, &mm);
     csr_cleanup(&csr);
     mtx_cleanup(&mm);
     hll_cleanup(&sm);
