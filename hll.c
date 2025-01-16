@@ -74,7 +74,8 @@ static inline void fill_padding(struct MatrixMarket *mm, struct hll *hll, int hl
 }
 
 /**
- * read_row reads a row of a sparse matrix in MatrixMarket format and produces
+ * read_row reads a row of a sparse matrix in MatrixMarket format which has
+ * at least a non-zero component and produces
  * the equivalent HLL representation of that row.
  * @param mm (in)       input matrix in MatrixMarket format
  * @param mmp (in/out)  pointer to the next matrix component to read
@@ -107,6 +108,12 @@ static inline int get_hacks_num(int num_rows, int hack_size) {
         hacks_num++;
     }
     return hacks_num;
+}
+
+void add_null_row(struct MatrixMarket *mm, struct hll *hll, int *hllp, int maxnzr) {
+    ifill(hll->col_index, *hllp, maxnzr, 0);
+    fill_padding(mm, hll, *hllp, maxnzr);
+    *hllp += maxnzr;
 }
 
 /**
@@ -185,8 +192,14 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
         // maxznr is the maximum number of non-zeros in the current hack -i.e.
         // maxznr = max(nzr[lo], nzr[lo+1], ..., nzr[lo+hack_size-1])
         int maxnzr = max(nzr, lo, lo + hack_size);
-        for (int i = 0; i < hack_size; ++i) {
-            read_row(mm, &mmp, hll, &hllp, maxnzr);
+        if (maxnzr > 0) {
+            for (int i = 0; i < hack_size; ++i) {
+                if (nzr[lo + i]) {
+                    read_row(mm, &mmp, hll, &hllp, maxnzr);
+                } else {
+                    add_null_row(mm, hll, &hllp, maxnzr);
+                }
+            }
         }
         hll->max_nzr[maxnzrp++] = maxnzr;
         hll->offsets[offp++] = hllp;
@@ -211,6 +224,7 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
         return 0;
     }
 }
+
 
 void hll_cleanup(struct hll *hll) {
     free(hll->offsets);
