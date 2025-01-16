@@ -13,26 +13,16 @@ char *paths[] = {
     "1138_bus.mtx", "3x3.mtx", "4x4.mtx", "af23560.mtx", "cage4.mtx", "mbeacxc.mtx", "sym3.mtx", "sym4.mtx"
 };
 
-void write_vector(double *v, int n, const char *path) {
-    FILE *f = fopen(path, "w");
-    if (f == NULL) {
-        printf("Error while opening file \n");
-        return;
-    }
-    for (int i = 0; i < n; i++) {
-        fprintf(f, "%f\n", v[i]);
-    }
-}
-
-void read_vector(double *vector, int n, const char *path) {
+int read_vector(double *vector, int n, const char *path) {
     FILE *f = fopen(path, "r");
     if (f == NULL) {
-        printf("Error while opening file: %s\n");
-        return;
+        printf("cannot open file: %s\n", path);
+        return 1;
     }
     for (int i = 0; i < n; i++) {
         fscanf(f, "%f", &vector[i]);
     }
+    return 0;
 }
 
 int test_hll(const char *file, const char *vfile, const char *rfile, int hack_size) {
@@ -50,7 +40,10 @@ int test_hll(const char *file, const char *vfile, const char *rfile, int hack_si
     int m = sm.num_rows;
     int n = sm.num_cols;
     double *v = d_zeros(m);
-    read_vector(v, m, vfile);
+    if (read_vector(v, m, vfile)) {
+        mtx_cleanup(&mm);
+        return 0;
+    }
     double *p = d_zeros(m);
     if (d_spmv_hll_par(p, &sm, v, n)) {
         mtx_cleanup(&mm);
@@ -86,7 +79,7 @@ int main(int argc, char **argv) {
         sprintf(rfile, "test/output/%s.result", line);
         sprintf(vfile, "test/output/%s.vector", line);
         if (test_hll(mfile, vfile, rfile, 32)) {
-            printf("Test failed \n");
+            printf("test failed for %s\n", line);
             return 1;
         }
     }

@@ -10,13 +10,16 @@ def mm_name(mm_path):
 
 def test(mm_path):
     with open(mm_path) as fp:
-        mm = mmread(StringIO(fp.read()))
-        v = np.random.rand(mm.shape[0])
-        path = os.path.join(OUTPUT_DIR, f'{mm_name(mm_path)}.vector')
-        np.savetxt(path, v, delimiter='\n', fmt='%f')
-        result = mm.dot(v)
-        path = os.path.join(OUTPUT_DIR, f'{mm_name(mm_path)}.result')
-        np.savetxt(path, result, delimiter='\n', fmt='%f')
+        try:
+            mm = mmread(StringIO(fp.read()))
+            v = np.random.rand(mm.shape[1], 1)
+            result = mm.dot(v)
+            vpath = os.path.join(OUTPUT_DIR, f'{mm_name(mm_path)}.vector')
+            np.savetxt(vpath, v, delimiter='\n', fmt='%f')
+            rpath = os.path.join(OUTPUT_DIR, f'{mm_name(mm_path)}.result')
+            np.savetxt(rpath, result, delimiter='\n', fmt='%f')
+        except ValueError as e:
+            print(f'(matrix={mm_name(mm_path)}) {e}')
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:

@@ -3,3 +3,5 @@ data/*
 *.exe
 .vscode/launch.json
 main.c
+test/**.mtx.*
+test/output/*

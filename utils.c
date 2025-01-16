@@ -100,10 +100,11 @@ static int __parse_rows(FILE *f, struct MatrixMarket *mm, int is_symmetric) {
     }
     free(items);
     free(data);
-    if (is_symmetric)
+    /*if (is_symmetric)
         printf("symmetric matrix: number of non-zeros goes from %d to %d (explicit zeros = %d)\n", mm->nz, real_nz, explicit_zeros);
     else
         printf("non symmetric matrix: number of non-zeros %d (explicit zeros = %d)\n", mm->nz, explicit_zeros);
+    */
     mm->nz = real_nz;
     return 0;
 }
@@ -159,10 +160,10 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
     mm->num_rows = M;
     mm->num_cols = N;
     mm->nz = nz;
-    printf("matrix %s:\n", path);
+    // printf("matrix %s:\n", path);
     int ir = parse_rows(f, mm);
     fclose(f);
-    printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm->num_rows, mm->num_cols, mm->nz);
+    // printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm->num_rows, mm->num_cols, mm->nz);
     return ir;
 }
 
