@@ -1,8 +1,9 @@
-#include <stdio.h>
 #include "hll.h"
 #include "utils.h"
 #include "vec.h"
 #include "spmv_openmp.h"
+#include <stdio.h>
+#include <string.h>
 
 const char *DATA_DIR = "data";
 
@@ -65,13 +66,25 @@ int test_hll(const char *file, const char *vfile, const char *rfile, int hack_si
 }
 
 int main(int argc, char **argv) {
+    if (--argc != 1) {
+        printf("see usage: program matrices_file\n");
+        return 1;
+    }
+    FILE* fp = fopen(argv[1], "r");
+    if (!fp) {
+        printf("cannot open matrices file: %s\n", argv[1]);
+        return 1;
+    }
+    char line[1024];
     char rfile[1024];
     char mfile[1024];
     char vfile[1024];
-    for (int i = 0; i < 5; ++i) {
-        sprintf(mfile, "data/%s", paths[i]);
-        sprintf(rfile, "test/output/%s.result", paths[i]);
-        sprintf(vfile, "test/output/%s.vector", paths[i]);
+    while (fgets(line, 1024, fp) != NULL) {
+        int n = strlen(line);
+        line[--n] = 0;
+        sprintf(mfile, "data/%s", line);
+        sprintf(rfile, "test/output/%s.result", line);
+        sprintf(vfile, "test/output/%s.vector", line);
         if (test_hll(mfile, vfile, rfile, 32)) {
             printf("Test failed \n");
             return 1;
