@@ -219,7 +219,7 @@ void read_and_measure_csr(char *path, int num_runs, int num_thread, char *out_pa
         printf("cannot open file %s\n", path);
         return;   
     }
-    fprintf("File,FLOPS,mean_time [s],num_threads,num_runs\n");
+    fprintf(results, "File,FLOPS,mean_time [s],num_threads,num_runs\n");
     while ((read = getline(&line, &len, f)) != -1) {
         printf("Get time for the matrix %s", line);
         size_t last_idx = strlen(line) - 1;
@@ -267,7 +267,7 @@ void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_threa
         printf("cannot open file %s\n", path);
         return;   
     }
-    fprintf("File,FLOPS,mean_time [s],num_threads,num_runs\n");
+    fprintf(results, "File,FLOPS,mean_time [s],num_threads,num_runs\n");
     while ((read = getline(&line, &len, f)) != -1) {
         printf("Get time for the matrix %s", line);
         size_t last_idx = strlen(line) - 1;
