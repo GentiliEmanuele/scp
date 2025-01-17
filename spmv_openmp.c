@@ -23,7 +23,7 @@ int spmv_csr_par(double *res, struct csr *csr, double *v, int n) {
 }
 
 // Calculates number of rows of hack h
-static inline int num_of_rows(struct hll *hll, int h) {
+static inline int R(struct hll *hll, int h) {
     if (hll->hacks_num - 1 == h && hll->num_rows % hll->hack_size) {
         return hll->num_rows % hll->hack_size;
     }
@@ -36,10 +36,10 @@ int spmv_hll_par(double *res, struct hll *hll, double *v, int n) {
         return 1;
     }
 
-    int rows = num_of_rows(hll, 0);
+    int rows = R(hll, 0);
     #pragma omp for schedule(static)
     for (int h = 0; h < hll->hacks_num; ++h) {
-        for (int r = 0; r < num_of_rows(hll, h); ++r) {
+        for (int r = 0; r < R(hll, h); ++r) {
             double sum = 0.0;
             for (int j = 0; j < hll->max_nzr[h]; ++j) {
                 int k = hll->offsets[h] + r * hll->max_nzr[h] + j;
