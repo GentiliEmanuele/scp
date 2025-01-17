@@ -35,7 +35,7 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
     double sum = 0;
     for (int i = 0; i < num_runs; i++) {
         clock_t start = clock();
-        if (d_spmv_csr_par(r, &sm, v, n)) {
+        if (spmv_csr_par(r, &sm, v, n)) {
             printf("warning: couldn't complete sparse matrix-vector product of run %d\n", i);
         }
         clock_t end = clock();
@@ -78,7 +78,7 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     double sum = 0;
     for (int i = 0; i < num_runs; i++) {
         clock_t start = clock();
-        if (d_spmv_hll_par(r, &sm, v, n)) {
+        if (spmv_hll_par(r, &sm, v, n)) {
             printf("warning: couldn't complete sparse matrix-vector product of run %d\n", i);
         }
         clock_t end = clock();

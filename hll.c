@@ -36,40 +36,15 @@ static int get_data_size(int *nzr, int hack_size, int num_rows) {
     return data_size + (num_rows - start) * max(nzr, start, num_rows);
 }
 
-static void inline ifill(int *v, int start, int n, int val) {
+static inline void ifill(int *v, int start, int n, int val) {
     for (int i = 0; i < n; ++i) {
         v[start + i] = val;
     }
 }
 
-static void inline dfill(double *v, int start, int n, double val) {
+static inline void dfill(double *v, int start, int n, double val) {
     for (int i = 0; i < n; ++i) {
         v[start + i] = val;
-    }
-}
-
-static inline void vcopy(void *dest, int dstart, void *src, int sstart, int n, int itmsz) {
-    memcpy(dest + (dstart * itmsz), src + (sstart * itmsz), n * itmsz);
-}
-
-/**
- * fill_padding add n values of padding to data and col_index if the row has less non-zero
- * values of the maximum number of non-zeros in the hack:
- * - 0 to data
- * - the last index of column in the row to col_index
- * @param mm (in)   it is needed to determine if the matrix contains integers or doubles
- * @param hll (out) wip hll representation of hll 
- * @param hllp (in) starting index of hll->data and hll->col_index where to start writing padding
- * @param n (in)    number of values of padding to write
- */
-static inline void fill_padding(struct MatrixMarket *mm, struct hll *hll, int hllp, int n) {
-    if (n > 0) {
-        ifill(hll->col_index, hllp, n, hll->col_index[hllp-1]);
-        if (mm_is_integer(mm->typecode)) {
-            ifill((int*)hll->data, hllp, n, 0);
-        } else {
-            dfill((double*)hll->data, hllp, n, 0.0);
-        }
     }
 }
 
@@ -93,12 +68,13 @@ static void read_row(struct MatrixMarket *mm, int *mmp, struct hll *hll, int *hl
         ++n;
     }
     
-    vcopy(hll->data, *hllp, mm->data, *mmp, n, get_element_size(mm));
-    vcopy(hll->col_index, *hllp, mm->cols, *mmp, n, sizeof(int));
+    memcpy(&hll->data[*hllp], &mm->data[*mmp], n * sizeof(double));
+    memcpy(&hll->col_index[*hllp], &mm->cols[*mmp], n * sizeof(int));
     *hllp += n;
     *mmp += n;
 
-    fill_padding(mm, hll, *hllp, maxnzr - n);
+    ifill(hll->col_index, *hllp, maxnzr - n, hll->col_index[*hllp - 1]);
+    dfill(hll->data, *hllp, maxnzr - n, 0.0);
     *hllp += maxnzr - n;
 }
 
@@ -112,7 +88,7 @@ static inline int get_hacks_num(int num_rows, int hack_size) {
 
 void add_null_row(struct MatrixMarket *mm, struct hll *hll, int *hllp, int maxnzr) {
     ifill(hll->col_index, *hllp, maxnzr, 0);
-    fill_padding(mm, hll, *hllp, maxnzr);
+    dfill(hll->data, *hllp, maxnzr, 0.0);
     *hllp += maxnzr;
 }
 
@@ -136,7 +112,9 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
     if (hack_size > hll->num_rows) {
         hack_size = hll->num_rows;
         hll->hack_size = hack_size;
-        printf("warning: hack size > number of rows, hack size set to number of rows\n");
+#ifdef SCP_VERBOSE
+        printf("warning (%s): hack size > number of rows, hack size set to number of rows\n", mm->path);
+#endif
     }
 
     hll->hacks_num = get_hacks_num(hll->num_rows, hack_size);
@@ -147,7 +125,7 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
     }
 
     int size = get_data_size(nzr, hack_size, mm->num_rows);
-    hll->data = malloc(size * get_element_size(mm));
+    hll->data = malloc(size * sizeof(double));
     if (hll->data == NULL) {
         free(nzr);
         free(hll->offsets);

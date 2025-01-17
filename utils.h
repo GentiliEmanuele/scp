@@ -2,25 +2,22 @@
 #define UTILS_H
 #include "mmio.h"
 
+#ifdef SCP_VERBOSE
+#define PATH_BUFFER_SZ 48
+#endif
 struct MatrixMarket {
     MM_typecode typecode;
-    void   *data;
+    double *data;
     int    *rows; 
     int    *cols;
     int    num_rows;
     int    num_cols;
     int    nz;
+#ifdef SCP_VERBOSE
+    char  *path;
+    char  __path_buffer[PATH_BUFFER_SZ];
+#endif
 };
-
-static inline int get_element_size(struct MatrixMarket *m) {
-    if (mm_is_integer(m->typecode)) {
-        return sizeof(int);
-    } else if (mm_is_real(m->typecode) || mm_is_pattern(m->typecode)) {
-        return sizeof(double);
-    } else {
-        return 0;
-    }
-}
 
 int read_mtx(const char *path, struct MatrixMarket *mm);
 void read_and_measure_csr(char *path, int num_runs, int num_thread, char *out_path);

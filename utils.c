@@ -29,46 +29,36 @@ static inline int qcmp(const void *a, const void *b) {
     return lt((struct vec3d*)a, (struct vec3d*)b);
 }
 
-static inline char *get_format_string(struct MatrixMarket *m) {
-    if (mm_is_pattern(m->typecode)) {
-        return "%d %d\n";
-    } else {
-        if (mm_is_integer(m->typecode)) {
-            return "%d %d %ld\n";
-        } else {
-            return "%d %d %lg\n";
-        }
-    }
-}
-
-static int readline(FILE *f, const char *fmt, int *row, int *col, void *val, int vp, struct MatrixMarket *mm) {
-    int not_zero = 1;
+static int readline(FILE *f, struct vec3d *item, double *val, struct MatrixMarket *mm) {
     if (!mm_is_pattern(mm->typecode)) {
-        if (mm_is_real(mm->typecode)) {
-            fscanf(f, fmt, row, col, &((double*)val)[vp]);
-            not_zero = !IS_ZERO(((double*)val)[vp]);
-        } else {
-            fscanf(f, fmt, row, col, &((int*)val)[vp]);
-            not_zero = ((int*)val)[vp] != 0;
-        }
+        fscanf(f, "%d %d %lg", &item->row, &item->col, val);
     } else {
-        fscanf(f, fmt, row, col);
-        ((double*)val)[vp] = 1.0;
+        fscanf(f, "%d %d", &item->row, &item->col);
+        *val = 1.0;
     }
     // Adjust from one-based to zero-based
-    *col -= 1;
-    *row -= 1;
-    return not_zero;
+    item->row -= 1;
+    item->col -= 1;
+    return !IS_ZERO(*val);
 }
 
-static int __parse_rows(FILE *f, struct MatrixMarket *mm, int is_symmetric) {
+static int __parse_rows(FILE *f, struct MatrixMarket *mm) {
+    int err;
+    int is_symmetric = mm_is_symmetric(mm->typecode);
     struct vec3d *items = malloc((is_symmetric ? 2 : 1) * mm->nz * sizeof(struct vec3d));
-    void *data = malloc(mm->nz * get_element_size(mm));
-    char *fmt = get_format_string(mm);
+    if (!items) {
+        err = -1;
+        goto no_items;
+    }
+    double *packed_data = malloc(mm->nz * sizeof(double));
+    if (!packed_data) {
+        err = -1;
+        goto no_pck_data;
+    }
     int real_nz = 0;
     int explicit_zeros = 0;
     for (int k = 0; k < mm->nz; k++) {
-        if (readline(f, fmt, &items[real_nz].row, &items[real_nz].col, data, k, mm)) {
+        if (readline(f, &items[real_nz], packed_data, mm)) {
             int i = items[real_nz].row;
             int j = items[real_nz].col;
             items[real_nz].pos = k;
@@ -83,39 +73,64 @@ static int __parse_rows(FILE *f, struct MatrixMarket *mm, int is_symmetric) {
             ++explicit_zeros;
         }
     }
-    qsort(items, real_nz, sizeof(struct vec3d), qcmp);
-    mm->rows = malloc(real_nz * sizeof(int));
-    mm->cols = malloc(real_nz * sizeof(int));
-    int element_size = get_element_size(mm);
-    mm->data = malloc(real_nz * element_size);
-    for (int i = 0; i < real_nz; ++i) {
-        mm->rows[i] = items[i].row;
-        mm->cols[i] = items[i].col;
-        int pos = items[i].pos;
-        if (mm_is_real(mm->typecode) || mm_is_pattern(mm->typecode)) {
-            ((double*)mm->data)[i] = ((double*)data)[pos];
-        } else {
-            ((int*)mm->data)[i] = ((int*)data)[pos];            
-        }
-    }
-    free(items);
-    free(data);
-    /*if (is_symmetric)
+#ifdef SCP_VERBOSE
+    if (is_symmetric)
         printf("symmetric matrix: number of non-zeros goes from %d to %d (explicit zeros = %d)\n", mm->nz, real_nz, explicit_zeros);
     else
         printf("non symmetric matrix: number of non-zeros %d (explicit zeros = %d)\n", mm->nz, explicit_zeros);
-    */
+#endif
+    qsort(items, real_nz, sizeof(struct vec3d), qcmp);
+    int *rows = malloc(real_nz * sizeof(int));
+    if (!rows) {
+        err = -1;
+        goto no_rows;
+    }
+    int *cols = malloc(real_nz * sizeof(int));
+    if (!cols) {
+        err = -1;
+        goto no_cols;
+    }
+    double *data;
+    if (mm_is_symmetric(mm->typecode)) {
+        data = malloc(real_nz * sizeof(double));
+        if (!data) {
+            err = -1;
+            goto no_data;
+        }
+        for (int i = 0; i < real_nz; ++i) {
+            data[i] = packed_data[items[i].pos];
+        }
+    } else {
+        data = packed_data;
+    }
+    for (int i = 0; i < real_nz; ++i) {
+        rows[i] = items[i].row;
+        cols[i] = items[i].col;
+    }
+    mm->rows = rows;
+    mm->cols = cols;
+    mm->data = data;
     mm->nz = real_nz;
     return 0;
+no_data:
+    free(cols);
+no_cols:
+    free(rows);
+no_rows:
+    free(packed_data);
+no_pck_data:
+    free(items);
+no_items:
+    return err;
 }
 
 static int parse_rows_sy(FILE *f, struct MatrixMarket *mm) {
-    return __parse_rows(f, mm, 1);
+    return __parse_rows(f, mm);
 }
 
 
 static int parse_rows_ns(FILE *f, struct MatrixMarket *mm) {
-    return __parse_rows(f, mm, 0);
+    return __parse_rows(f, mm);
 }
 
 static int parse_rows(FILE *f, struct MatrixMarket *mm) { 
@@ -139,7 +154,7 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
         printf("cannot open file %s\n", path);
         return 1;
     }
-    
+    MM_typecode typecode;
     if (mm_read_banner(f, &(mm->typecode)) != 0) {
         printf("could not process Matrix Market banner\n");
         return 1;
@@ -160,10 +175,21 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
     mm->num_rows = M;
     mm->num_cols = N;
     mm->nz = nz;
-    // printf("matrix %s:\n", path);
     int ir = parse_rows(f, mm);
     fclose(f);
-    // printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm->num_rows, mm->num_cols, mm->nz);
+#ifdef SCP_VERBOSE
+    int len = strlen(path);
+    if (len < PATH_BUFFER_SZ) {
+        strcpy(mm->__path_buffer, path);
+        mm->__path_buffer[len] = 0;
+        mm->path = mm->__path_buffer;
+    } else {
+        mm->path = malloc(len + 1);
+        strcpy(mm->path, path);
+    }
+    printf("matrix %s:\n", path);
+    printf("matrix has %d rows and %d cols and number of non-zeros %d\n", mm->num_rows, mm->num_cols, mm->nz);
+#endif
     return ir;
 }
 
@@ -265,4 +291,9 @@ void mtx_cleanup(struct MatrixMarket *mm) {
     free(mm->cols);
     free(mm->data);
     free(mm->rows);
+#ifdef SCP_VERBOSE
+    if (mm->path != mm->__path_buffer) {
+        free(mm->path);
+    }
+#endif
 }

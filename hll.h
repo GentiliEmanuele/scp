@@ -8,7 +8,7 @@ typedef struct hll
     int  *offsets;
     int  offsets_num;
     int  *col_index;
-    void *data;
+    double *data;
     int  data_num;
     int  hacks_num;
     int  num_rows;

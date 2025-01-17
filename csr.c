@@ -7,7 +7,7 @@
 int csr_init(struct csr *csr, struct MatrixMarket *m) {
     csr->num_rows = m->num_rows;
     csr->num_cols = m->num_cols;
-    csr->data = malloc(m->nz * get_element_size(m));
+    csr->data = malloc(m->nz * sizeof(double));
     if (csr->data == NULL) {
         return 1;
     }
@@ -22,7 +22,7 @@ int csr_init(struct csr *csr, struct MatrixMarket *m) {
         free(csr->row_pointer);
         return 1;
     }
-    memcpy(csr->data, m->data, m->nz * get_element_size(m));
+    memcpy(csr->data, m->data, m->nz * sizeof(double));
     memcpy(csr->col_index, m->cols, m->nz * sizeof(int));
     csr->row_pointer[0] = 0;
     int prev = m->rows[0];
