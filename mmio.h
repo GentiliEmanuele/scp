@@ -96,7 +96,7 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 
    string position:	 [0]        [1]			[2]         [3]
 
-   Matrix typecode:  M(atrix)  C(oord)		R(eal)   	G(eneral)
+   Matrix typecode:  M(atrix)  C(oord)		num_of_rows(eal)   	G(eneral)
 						        A(array)	C(omplex)   H(ermitian)
 											P(attern)   S(ymmetric)
 								    		I(nteger)	K(kew)

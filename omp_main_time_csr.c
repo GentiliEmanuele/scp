@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv) {
     if (argc != 5) {
-        printf("usage:\nprogram matrices_list num_runs num_threads result_file_path\n");
+        printf("usage:\nprogram matrices_list num_threads num_runs result_file_path\n");
         return 1;
     }
     char *out_path = argv[--argc];
