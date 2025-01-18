@@ -203,6 +203,10 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm) {
     }
 }
 
+size_t hll_get_footprint(struct hll *hll) {
+    return hll->data_num * sizeof(double) + hll->data_num * sizeof(int)
+    + hll->hacks_num * sizeof(int) + hll->offsets_num * sizeof(int) + sizeof(struct hll);
+}
 
 void hll_cleanup(struct hll *hll) {
     free(hll->offsets);

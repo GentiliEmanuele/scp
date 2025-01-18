@@ -17,7 +17,7 @@ openmp_pytest:
 	gcc -g csr.c mmio.c utils.c hll.c omp_time.c spmv_seq.c spmv_openmp.c vec.c omp_main_pytest.c -o openmp_pytest.exe -fopenmp -lm
 
 info:
-	gcc -g mkinfo.c utils.c mmio.c -o mkinfo.exe
+	gcc -g mkinfo.c utils.c mmio.c hll.c csr.c -o mkinfo.exe
 
 clean:
 	rm *.exe

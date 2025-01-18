@@ -1,3 +1,5 @@
+#include "csr.h"
+#include "hll.h"
 #include "utils.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -35,14 +37,25 @@ int main(int argc, char *argv[])
         printf("cannot create file %s\n", argv[2]);
         return -1;
     }
-    fprintf(off, "Matrix name,M,N,NZ\n");
+    fprintf(off, "Matrix name,M,N,NZ,hll_size,csr_size\n");
     while (fgets(line, MAX_LINE, iff)) {
         int n = strlen(line);
         line[--n] = 0;
         if (read_mtx(line, &mm)) {
             continue;
         }
-        fprintf(off, "%s,%d,%d,%d\n", mm_name(line), mm.num_rows, mm.num_cols, mm.nz);
+        struct hll hll;
+        if (hll_init(&hll, 32, &mm)) {
+            mtx_cleanup(&mm);
+            continue;
+        }
+        struct csr csr;
+        if (csr_init(&csr, &mm)) {
+            mtx_cleanup(&mm);
+            hll_cleanup(&hll);
+            continue;
+        }
+        fprintf(off, "%s,%d,%d,%d,%lu,%lu\n", mm_name(line), mm.num_rows, mm.num_cols, mm.nz, hll_get_footprint(&hll), csr_get_footprint(&csr, mm.nz));
         mtx_cleanup(&mm);
     }
     fclose(iff);
