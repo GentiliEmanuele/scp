@@ -44,7 +44,7 @@ int csr_init(struct csr *csr, struct MatrixMarket *m) {
     return 0;
 }
 
-size_t csr_get_footprint(struct csr *csr, int nz) {
+size_t csr_get_size(struct csr *csr, int nz) {
     return sizeof(double) * nz + sizeof(int) * nz + sizeof(int) * (csr->num_rows + 1) + sizeof(struct csr);
 }
 

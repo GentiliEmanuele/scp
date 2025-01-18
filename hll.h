@@ -19,7 +19,7 @@ typedef struct hll
 
 int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm);
 
-size_t hll_get_footprint(struct hll *hll);
+size_t hll_get_size(struct hll *hll);
 
 void hll_cleanup(struct hll *hll);
 #endif

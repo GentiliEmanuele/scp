@@ -14,7 +14,7 @@ typedef struct csr
 
 int csr_init(struct csr *csr, struct MatrixMarket *m);
 
-size_t csr_get_footprint(struct csr *csr, int nz);
+size_t csr_get_size(struct csr *csr, int nz);
 
 void csr_cleanup(struct csr *csr);
 #endif
