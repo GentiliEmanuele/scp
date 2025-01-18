@@ -20,6 +20,30 @@ static char* mm_name(char *path) {
     return *pp == '/' ? pp + 1 : pp;
 }
 
+static int avg_nzr(struct MatrixMarket *mm, double *avg_nzr, int *max_nzr) {
+    int *nzr = malloc(sizeof(int) * mm->num_rows);
+    if (!nzr) {
+        printf("cannot allocate enough space to allocate non-zero occurrences\n");
+        return -1;
+    }
+    memset(nzr, 0, sizeof(int) * mm->num_rows);
+    for (int i = 0; i < mm->nz; ++i) {
+        nzr[mm->rows[i]]++;
+    }
+    double avg = 0.0;
+    int max = -1;
+    for (int i = 0; i < mm->num_rows; ++i) {
+        int x = nzr[i];
+        avg += x;
+        if (x > max) {
+            max = x;
+        }
+    }
+    *avg_nzr = avg / mm->num_rows;
+    *max_nzr = max;
+    free(nzr);
+}
+
 int main(int argc, char *argv[])
 {
     if (--argc != 2) {
@@ -37,12 +61,18 @@ int main(int argc, char *argv[])
         printf("cannot create file %s\n", argv[2]);
         return -1;
     }
-    fprintf(off, "Matrix name,M,N,NZ,csr_size,hll_size(32),hll_size(64),hll_size(128),hll_size(160)\n");
+    fprintf(off, "Matrix name,M,N,NZ,avg_nzr,max_nzr,csr_size,hll_size(32),hll_size(64),hll_size(128),hll_size(160)\n");
     while (fgets(line, MAX_LINE, iff)) {
         int n = strlen(line);
         if (line[--n] == '\n')
             line[n] = 0;
         if (read_mtx(line, &mm)) {
+            continue;
+        }
+        double avg;
+        int max;
+        if (avg_nzr(&mm, &avg, &max)) {
+            mtx_cleanup(&mm);
             continue;
         }
         struct csr csr;
@@ -61,8 +91,8 @@ int main(int argc, char *argv[])
             hll_size[i] = hll_get_size(&hll);
             hll_cleanup(&hll);
         }
-        fprintf(off, "%s,%d,%d,%d,%lu,%lu,%lu,%lu,%lu\n",
-            mm_name(line), mm.num_rows, mm.num_cols, mm.nz,
+        fprintf(off, "%s,%d,%d,%d,%lg,%d,%lu,%lu,%lu,%lu,%lu\n",
+            mm_name(line), mm.num_rows, mm.num_cols, mm.nz, avg, max,
             csr_size,
             hll_size[0], hll_size[1], hll_size[2], hll_size[3]);
         mtx_cleanup(&mm);
