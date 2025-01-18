@@ -192,3 +192,14 @@ int read_mtx(const char *path, struct MatrixMarket *mm) {
 #endif
     return ir;
 }
+
+void mtx_cleanup(struct MatrixMarket *mm) {
+    free(mm->cols);
+    free(mm->data);
+    free(mm->rows);
+#ifdef SCP_VERBOSE
+    if (mm->path != mm->__path_buffer) {
+        free(mm->path);
+    }
+#endif
+}

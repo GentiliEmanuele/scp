@@ -11,10 +11,11 @@ static char* mm_name(char *path) {
     while (*pp != '.') {
         --pp;
     }
+    *pp = 0;
     while (pp != path && *pp != '/') {
         --pp;
     }
-    return pp;
+    return *pp == '/' ? pp + 1 : pp;
 }
 
 int main(int argc, char *argv[])
@@ -42,6 +43,7 @@ int main(int argc, char *argv[])
             continue;
         }
         fprintf(off, "%s,%d,%d,%d\n", mm_name(line), mm.num_rows, mm.num_cols, mm.nz);
+        mtx_cleanup(&mm);
     }
     fclose(iff);
     fclose(off);
