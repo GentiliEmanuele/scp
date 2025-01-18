@@ -91,3 +91,109 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     mtx_cleanup(&mm);
     hll_cleanup(&sm);
 }
+
+/**
+ * read_and_test for csr format-- read a file in txt with the name of all matrices to use
+ * @param path (in)                 path of the file to read
+ * @param num_runs (in)             number of times the measurement must be performed
+ * @param num_thread (in)           number of thread used in the executions
+ * @param out_path (in)             path to write results
+ */
+void read_and_measure_csr(char *path, int num_runs, int num_thread, char *out_path) {
+    if (path == NULL) {
+        printf("Please pass the path to the file with matrices name\n");
+        return;
+    }
+    FILE *f = fopen(path, "r");
+    if (f == NULL) {
+        printf("cannot open file %s\n", path);
+        return;
+    }
+    size_t len = 0;
+    size_t read;
+    char *line = NULL;
+    time_measurement_t time_measurement;
+    FILE *results = fopen(out_path, "w");
+    if (results == NULL) {
+        printf("cannot open file %s\n", path);
+        return;   
+    }
+    fprintf(results, "File,FLOPS,mean_time [s],num_threads,num_runs\n");
+    while ((read = getline(&line, &len, f)) != -1) {
+        printf("Get time for the matrix %s", line);
+        size_t last_idx = strlen(line) - 1;
+        if( line[last_idx] == '\n' ) {
+            line[last_idx] = '\0';
+        }
+        omp_time_csr(line, num_runs, num_thread, &time_measurement);
+        fprintf(results, "%s,%f,%f,%d,%d\n",
+            line,
+            time_measurement.flops,
+            time_measurement.mean_time,
+            time_measurement.num_threads,
+            time_measurement.num_runs);
+    }
+    printf("\n");
+    fclose(f);
+    if (line)
+        free(line);
+}
+
+/**
+ * read_and_test for hll format-- read a file in txt with the name of all matrices to use
+ * @param path (in)                 path of the file to read
+ * @param hack_size (in)            number of rows of each hack
+ * @param num_runs (in)             number of times the measurement must be performed
+ * @param num_thread (in)           number of thread used in the executions
+ * @param out_path (in)             path to write results
+ */
+void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_thread, char *out_path) {
+    if (path == NULL) {
+        printf("Please pass the path to the file with matrices name\n");
+        return;
+    }
+    FILE *f = fopen(path, "r");
+    if (f == NULL) {
+        printf("cannot open file %s\n", path);
+        return;
+    }
+    size_t len = 0;
+    size_t read;
+    char *line = NULL;
+    time_measurement_t time_measurement;
+    FILE *results = fopen(out_path, "w");
+    if (results == NULL) {
+        printf("cannot open file %s\n", path);
+        return;   
+    }
+    fprintf(results, "File,FLOPS,mean_time [s],num_threads,num_runs\n");
+    while ((read = getline(&line, &len, f)) != -1) {
+        printf("Get time for the matrix %s", line);
+        size_t last_idx = strlen(line) - 1;
+        if( line[last_idx] == '\n' ) {
+            line[last_idx] = '\0';
+        }
+        omp_time_hll(line, hack_size, num_runs, num_thread, &time_measurement);
+        fprintf(results, "%s,%f,%f,%d,%d\n",
+            line,
+            time_measurement.flops,
+            time_measurement.mean_time,
+            time_measurement.num_threads,
+            time_measurement.num_runs);
+    }
+    printf("\n");
+    fclose(f);
+    if (line)
+        free(line);
+}
+
+void mtx_cleanup(struct MatrixMarket *mm) {
+    free(mm->cols);
+    free(mm->data);
+    free(mm->rows);
+#ifdef SCP_VERBOSE
+    if (mm->path != mm->__path_buffer) {
+        free(mm->path);
+    }
+#endif
+}
