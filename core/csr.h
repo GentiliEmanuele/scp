@@ -10,6 +10,7 @@ typedef struct csr
     double *data;
     int num_rows;
     int num_cols;
+    int num_data;
 } csr_t;
 
 int csr_init(struct csr *csr, struct MatrixMarket *m);

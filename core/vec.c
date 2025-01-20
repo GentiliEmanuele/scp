@@ -29,3 +29,14 @@ inline int d_veceq(double *u, double *v, int n, double eps) {
     return 1;
 }
 
+int read_vector(double *vector, int n, const char *path) {
+    FILE *f = fopen(path, "r");
+    if (f == NULL) {
+        printf("cannot open file: %s\n", path);
+        return 1;
+    }
+    for (int i = 0; i < n; i++) {
+        fscanf(f, "%f", &vector[i]);
+    }
+    return 0;
+}

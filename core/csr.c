@@ -7,6 +7,7 @@
 int csr_init(struct csr *csr, struct MatrixMarket *m) {
     csr->num_rows = m->num_rows;
     csr->num_cols = m->num_cols;
+    csr->num_data = m->nz;
     csr->data = malloc(m->nz * sizeof(double));
     if (csr->data == NULL) {
         return 1;

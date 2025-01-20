@@ -5,6 +5,15 @@ from scipy.sparse import coo_matrix
 import os
 import sys
 
+names = '''1138_bus.mtx
+3x3.mtx
+4x4.mtx
+af23560.mtx
+cage4.mtx
+mbeacxc.mtx
+sym3.mtx
+sym4.mtx'''
+
 def mm_name(mm_path):
     return os.path.basename(mm_path)
 
@@ -27,8 +36,6 @@ def test(mm_path, output_dir):
             print(f'(matrix={mm_name(mm_path)}) {e}')
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("see usage: program matrices_directory output_directory")
     matrices_dir = sys.argv[1]
     output_dir = sys.argv[2]
 

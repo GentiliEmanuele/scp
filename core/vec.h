@@ -13,4 +13,6 @@ double *d_random(int n);
 
 int d_veceq(double *u, double *v, int n, double eps);
 
+int read_vector(double *vector, int n, const char *path);
+
 #endif
