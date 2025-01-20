@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -Icore -rdynamic CMakeFiles/main.dir/main_generated_spmv_cuda.cu.o -o main  /usr/local/cuda/lib64/libcudart_static.a -ldl -Wl,-Bstatic -lrt -Wl,-Bdynamic 

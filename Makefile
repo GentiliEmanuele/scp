@@ -24,3 +24,4 @@ info:
 
 clean:
 	rm build/*.exe
+
