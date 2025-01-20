@@ -1,23 +1,26 @@
-all:
-	gcc -g csr.c mmio.c omp_test.c omp_time.c utils.c fmt.c hll.c spmv_openmp.c spmv_seq.c vec.c omp_main_test_csr.c -o main.exe -fopenmp -lm
+omp_test_csr:
+	mkdir -p build
+	gcc -g core/*.c omp/spmv_*.c omp/omp_test.c omp/omp_main_test_csr.c -o build/omp_test_csr.exe -fopenmp -lm -Icore -Iomp
 
-openmp_test_csr:
-	gcc -g csr.c mmio.c omp_test.c omp_time.c utils.c fmt.c hll.c spmv_openmp.c spmv_seq.c vec.c omp_main_test_csr.c -o openmp_test_csr.exe -fopenmp -lm
+omp_time_csr:
+	mkdir -p build
+	gcc -g core/*.c omp/spmv_*.c omp/omp_time.c omp/omp_main_time_csr.c -o build/omp_time_csr.exe -fopenmp -lm -Icore -Iomp
 
-openmp_time_csr:
-	gcc -g csr.c mmio.c omp_test.c omp_time.c utils.c hll.c fmt.c spmv_openmp.c spmv_seq.c vec.c omp_main_time_csr.c -o openmp_time_csr.exe -fopenmp -lm
+omp_test_hll:
+	mkdir -p build
+	gcc -g core/*.c omp/spmv_*.c omp/omp_test.c omp/omp_main_test_csr.c -o build/omp_test_hll.exe -fopenmp -lm -Icore -Iomp
 
-openmp_test_hll:
-	gcc -g csr.c mmio.c omp_test.c omp_time.c utils.c hll.c fmt.c spmv_openmp.c spmv_seq.c vec.c omp_main_test_hll.c -o openmp_test_hll.exe -fopenmp -lm
+omp_time_hll:
+	mkdir -p build
+	gcc -g core/*.c omp/spmv_*.c omp/omp_time.c omp/omp_main_time_hll.c -o build/omp_time_csr.exe -fopenmp -lm -Icore -Iomp
 
-openmp_time_hll:
-	gcc -g csr.c mmio.c omp_test.c omp_time.c utils.c hll.c fmt.c spmv_openmp.c spmv_seq.c vec.c omp_main_time_hll.c -o openmp_time_hll.exe -fopenmp -lm
-
-openmp_pytest:
-	gcc -g csr.c mmio.c utils.c hll.c omp_time.c spmv_seq.c spmv_openmp.c vec.c omp_main_pytest.c -o openmp_pytest.exe -fopenmp -lm
+omp_pytest:
+	mkdir -p build
+	gcc -g core/*.c omp/omp_main_pytest.c -o build/openmp_pytest.exe -fopenmp -lm -Icore -Iomp
 
 info:
-	gcc -g mkinfo.c utils.c mmio.c hll.c csr.c -o mkinfo.exe
+	mkdir -p build
+	gcc -g core/mkinfo.c core/utils.c core/mmio.c core/hll.c core/csr.c -o build/mkinfo.exe -Icore
 
 clean:
-	rm *.exe
+	rm build/*.exe

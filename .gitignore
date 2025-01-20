@@ -1,6 +1,7 @@
 data/*
 **.mtx
-*.exe
+*//*.exe
+build/*
 .vscode/launch.json
 main.c
 test/**.mtx.*
