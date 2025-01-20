@@ -4,7 +4,7 @@
 #include <cuda_runtime.h>
 
 __global product(struct csr *csr, double *res,  double *v, int n) {
-    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    int i = blockIdx.x + threadIdx.x;
     if (i < n) {
         double sum = 0.0;
         for (int j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {
@@ -57,7 +57,7 @@ int main(int argc, const char *argv) {
     // (N+255)/256 number of block in the grid
     // 256 number of the thread in the block
     int N = 1<<20;
-    product<<<(N+255)/256, 256>>>(sm, result, v, n);
+    product<<<1, m>>>(sm, result, v, n);
 
     cudaMemcpy(d_result, result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
     char r_path[256];
