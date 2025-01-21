@@ -14,6 +14,12 @@ omp_time_hll:
 	mkdir -p build
 	gcc -g core/*.c omp/spmv_*.c omp/omp_time.c omp/omp_main_time_hll.c -o build/omp_time_csr.exe -fopenmp -lm -Icore -Iomp
 
+cuda:
+	mkdir -p build/cuda
+	cmake CMakeLists.txt -B build/cuda
+	cd build/cuda
+	make
+
 omp_pytest:
 	mkdir -p build
 	gcc -g core/*.c omp/omp_main_pytest.c -o build/openmp_pytest.exe -fopenmp -lm -Icore -Iomp
@@ -23,5 +29,5 @@ info:
 	gcc -g core/mkinfo.c core/utils.c core/mmio.c core/hll.c core/csr.c -o build/mkinfo.exe -Icore
 
 clean:
-	rm build/*.exe
+	rm -rf build/
 
