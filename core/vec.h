@@ -1,6 +1,11 @@
 #ifndef __VEC_H__
 #define __VEC_H__
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <math.h>
 #include <stdlib.h>
 
@@ -15,4 +20,7 @@ int d_veceq(double *u, double *v, int n, double eps);
 
 int read_vector(double *vector, int n, const char *path);
 
+#ifdef __cplusplus
+} // extern "C"
+#endif
 #endif

@@ -1,5 +1,9 @@
 #ifndef CSR_H
 #define CSR_H
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "utils.h"
 #include <stdlib.h>
 
@@ -18,4 +22,7 @@ int csr_init(struct csr *csr, struct MatrixMarket *m);
 size_t csr_get_size(struct csr *csr, int nz);
 
 void csr_cleanup(struct csr *csr);
+#ifdef __cplusplus
+} // extern "C"
+#endif
 #endif

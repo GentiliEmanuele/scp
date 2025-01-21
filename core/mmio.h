@@ -8,7 +8,10 @@
 
 #ifndef MM_IO_H
 #define MM_IO_H
-
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include <stdio.h>
 
 #define MM_MAX_LINE_LENGTH 1025
@@ -131,5 +134,7 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
                 double **val_, int **I_, int **J_);
 
 
-
+#ifdef __cplusplus
+} // extern "C"
+#endif
 #endif

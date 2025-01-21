@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     read_vector(py_result, m, r_path);
     if (!d_veceq(py_result, result, m, 1e-6)) {
         printf("test failed!\n");
-    }
+    } else printf("test passed \n");
     
     cudaFree(d_data);
     cudaFree(d_col_index);

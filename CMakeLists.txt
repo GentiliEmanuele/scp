@@ -12,7 +12,7 @@ find_package(CUDA REQUIRED)
 
 
 add_executable(test cuda/spmv_cuda.cu)
-add_library(one STATIC core/vec.h core/vec.c core/csr.h core/csr.c core/utils.h core/utils.c)
+add_library(one SHARED core/vec.h core/vec.c core/csr.h core/csr.c core/utils.h core/utils.c core/mmio.h core/mmio.c)
 target_include_directories(one PUBLIC core)
 target_link_libraries(test PUBLIC one)
 target_link_libraries(test PUBLIC ${CUDA_LIBRARIES})
