@@ -1,6 +1,5 @@
 #include "utils.h"
 #include "mmio.h"
-#include "omp_time.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
