@@ -10,10 +10,11 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-DSM_${CC};-arch=sm_${CC};-lineinfo;-Xcom
 
 find_package(CUDA REQUIRED)
 
-
+add_executable(gpu_info cuda/gpuinfo.cu)
 add_executable(test cuda/spmv_cuda.cu)
 add_library(one SHARED core/vec.h core/vec.c core/csr.h core/csr.c core/utils.h core/utils.c core/mmio.h core/mmio.c)
 target_include_directories(one PUBLIC core)
 target_link_libraries(test PUBLIC one)
 target_link_libraries(test PUBLIC ${CUDA_LIBRARIES})
+target_link_libraries(gpu_info PUBLIC ${CUDA_LIBRARIES})
 set_target_properties(one PROPERTIES LINKER_LANGUAGE C)
