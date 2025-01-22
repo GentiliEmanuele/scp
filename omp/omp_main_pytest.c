@@ -114,36 +114,36 @@ static int test_csr_seq(const char *file, const char *vfile, const char *rfile) 
 
 int main(int argc, char **argv) {
     --argc;
-    if (argc != 2 && argc != 3) {
-        printf("see usage: program matrices_file (csr|hll|serial) {hack_size}\n");
+    if (argc != 3 && argc != 4) {
+        printf("see usage: program matrix_path matrices_file (csr|hll|serial) {hack_size}\n");
         return 1;
     }
     int ttype;
-    if (!strcmp(argv[2], "csr")) {
+    if (!strcmp(argv[3], "csr")) {
         ttype = CSR;
-    } else if (!strcmp(argv[2], "hll")) {
+    } else if (!strcmp(argv[3], "hll")) {
         ttype = HLL;
-    } else if (!strcmp(argv[2], "serial")) {
+    } else if (!strcmp(argv[3], "serial")) {
         ttype = SERIAL;
     } else {
-        printf("expected one of csr, hll or serial but got %s\n", argv[2]);
+        printf("expected one of csr, hll or serial but got %s\n", argv[3]);
         return 1;
     }
     int hack_size = 32;
     if (ttype == HLL) {
-        if (argc == 2) {
+        if (argc == 3) {
             printf("warning: hack_size not provided, defaulting to 32\n");
         } else {
-            hack_size = strtol(argv[3], NULL, 10);
+            hack_size = strtol(argv[4], NULL, 10);
             if (hack_size <= 0) {
-                printf("invalid hack_size provided %s\n", argv[3]);
+                printf("invalid hack_size provided %s\n", argv[4]);
                 return 1;
             }
         }
     }
-    FILE* fp = fopen(argv[1], "r");
+    FILE* fp = fopen(argv[2], "r");
     if (!fp) {
-        printf("cannot open matrices file: %s\n", argv[1]);
+        printf("cannot open matrices file: %s\n", argv[2]);
         return 1;
     }
     char line[1024];
@@ -155,9 +155,9 @@ int main(int argc, char **argv) {
     while (fgets(line, 1024, fp) != NULL) {
         int n = strlen(line);
         line[--n] = 0;
-        sprintf(mfile, "data/%s", line);
-        sprintf(rfile, "test/output/%s.result", line);
-        sprintf(vfile, "test/output/%s.vector", line);
+        sprintf(mfile, "%s/data/%s", argv[1], line);
+        sprintf(rfile, "%s/test/output/%s.result", argv[1], line);
+        sprintf(vfile, "%s/test/output/%s.vector", argv[1], line);
         ++total;
         switch (ttype)
         {

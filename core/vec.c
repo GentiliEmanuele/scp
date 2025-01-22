@@ -36,7 +36,7 @@ int read_vector(double *vector, int n, const char *path) {
         return 1;
     }
     for (int i = 0; i < n; i++) {
-        fscanf(f, "%f", &vector[i]);
+        fscanf(f, "%lg", &vector[i]);
     }
     return 0;
 }

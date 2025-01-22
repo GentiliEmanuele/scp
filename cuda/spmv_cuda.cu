@@ -51,8 +51,8 @@ int main(int argc, char **argv) {
     cudaMemcpy(d_v, v, sm.num_rows * sizeof(double), cudaMemcpyHostToDevice);
 
     // Perform SAXPY on 1M elements
-    // (N+255)/256 number of block in the grid
-    // 256 number of the thread in the block
+    // 1 number of block in the grid
+    // m number of the thread in the block
     int N = 1<<20;
     product<<<1, m>>>(&sm, d_result, v, n);
     double *result = d_zeros(m);

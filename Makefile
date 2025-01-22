@@ -22,7 +22,7 @@ cuda:
 
 omp_pytest:
 	mkdir -p build
-	gcc -g core/*.c omp/omp_main_pytest.c -o build/openmp_pytest.exe -fopenmp -lm -Icore -Iomp
+	gcc -g core/*.c omp/spmv_*.c omp/omp_main_pytest.c -o build/openmp_pytest.exe -fopenmp -lm -Icore -Iomp
 
 info:
 	mkdir -p build
