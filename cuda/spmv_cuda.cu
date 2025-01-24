@@ -22,7 +22,7 @@ void print_vec(double *v, int n) {
 	}
 }
 
-int cuda_csr_init(struct csr *csr, double **data, int **col_index, int **row_pointer) {
+cudaError_t cuda_csr_init(struct csr *csr, double **data, int **col_index, int **row_pointer) {
     cudaError_t err;
     err = cudaMalloc(data, sizeof(double) * csr -> num_data);
     if (err != cudaSuccess) {
@@ -39,7 +39,7 @@ int cuda_csr_init(struct csr *csr, double **data, int **col_index, int **row_poi
         cudaFree(*col_index);
         return err;
     }
-    err = cudaMemcpy(*data, sm.data, csr->num_data * sizeof(double), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(*data, csr -> data, csr->num_data * sizeof(double), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
         cudaFree(*data);
         cudaFree(*col_index);
@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
     // 1 number of block in the grid
     // m number of the thread in the block
     product<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
-    cudaError_t err = cudaGetLastError();
+    err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
 	    cudaFree(d_data);
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
     char r_path[256];
     sprintf(r_path, "%s.result", argv[1]);
     double *py_result = d_zeros(m);
-    if (!spmv_csr_par(py_result, &sm, v, sm.m)) {
+    if (spmv_csr_par(py_result, &sm, v, m)) {
         printf("cannot execute csr product\n");
         cudaFree(d_data);
     	cudaFree(d_col_index);
@@ -150,13 +150,17 @@ int main(int argc, char **argv) {
     	csr_cleanup(&sm);
         return 1;
     }
-    if (!d_veceq(result, py_result, m)) {
+    if (!d_veceq(result, py_result, m, 1e-6)) {
         printf("test failed\n");
     } else {
         printf("test passed\n");
     }
+    printf("Result \n");
     print_vec(result, 10);
+    printf("Pyresult \n");
     print_vec(py_result, 10);
+    printf("v\n");
+    print_vec(v, 10);
     free(py_result);
     free(result);
     free(v);

@@ -1,5 +1,11 @@
 #ifndef HLL_H
 #define HLL_H
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include "utils.h"
 #include <stdlib.h>
 
@@ -22,4 +28,8 @@ int hll_init(struct hll *hll, int hack_size, struct MatrixMarket *mm);
 size_t hll_get_size(struct hll *hll);
 
 void hll_cleanup(struct hll *hll);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 #endif

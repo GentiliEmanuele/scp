@@ -58,17 +58,6 @@ void write_vector(double *v, int n, const char *path) {
     }
 }
 
-void read_vector(double *vector, int n, const char *path) {
-    FILE *f = fopen(path, "r");
-    if (f == NULL) {
-        printf("Error while opening file \n");
-        return;
-    }
-    for (int i = 0; i < n; i++) {
-        fscanf(f, "%f", vector[i]);
-    }
-}
-
 int test_hll(const char *file, int hack_size) {
     struct MatrixMarket mm;
     if (read_mtx(file, &mm)) {
