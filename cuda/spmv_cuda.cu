@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 
-#define num_of_rows(hacks_num, num_rows, h, hack_size) ((hacks_num - 1 == h && num_rows % hack_size) ? num_rows % hack_size : hack_size)
+#define num_of_rows(h, hack_size, hacks_num, num_rows) ((hacks_num - 1 == h && num_rows % hack_size) ? num_rows % hack_size : hack_size)
 
-__global__ void spmv_csr(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
+__global__ void cuda_spmv_csr(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i < n) {
         double sum = 0.0;
@@ -19,9 +19,10 @@ __global__ void spmv_csr(double *res, int *row_pointer, double *data, int *col_i
     }
 }
 
-__global__ void spmv_hll(double *res, int *row_pointer, int hacks_num, double *data, int *col_index,  int *max_nzr, double *v, int n, int hack_size) {
+__global__ void cuda_spmv_hll(double *res, int hack_size, int hacks_num, double *data, int *offsets, int *col_index,  int *max_nzr, double *v, int n) {
     int h = blockDim.x * blockIdx.x + threadIdx.x;
-    for (int r = 0; r < num_of_rows(hacks_num, n, h, hack_size); ++r) {
+    int rows = num_of_rows(0, hack_size, hacks_num, n);
+    for (int r = 0; r < num_of_rows(h, hack_size, hacks_num, n); ++r) {
         double sum = 0.0;
         for (int j = 0; j < max_nzr[h]; ++j) {
             int k = offsets[h] + r * max_nzr[h] + j;
@@ -37,7 +38,7 @@ void print_vec(double *v, int n) {
 	}
 }
 
-cudaError_t cuda_hll_init(struct hll *hll, double *data, int *col_index, int *maxnzr) {
+cudaError_t cuda_hll_init(struct hll *hll, double *data, int *col_index, int *maxnzr, int *offsets) {
     cudaError_t err;
     err = cudaMalloc(&data, sizeof(double) * hll->data_num);
     if (err != cudaSuccess) {
@@ -54,6 +55,12 @@ cudaError_t cuda_hll_init(struct hll *hll, double *data, int *col_index, int *ma
         cudaFree(col_index);
         return err;
     }
+    err = cudaMalloc(&offsets, sizeof(int) * hll->offsets_num);
+    if (err != cudaSuccess) {
+        cudaFree(data);
+        cudaFree(col_index);
+        cudaFree(maxnzr);
+    }
     err = cudaMemcpy(data, hll->data, hll->data_num * sizeof(double), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
         cudaFree(*data);
@@ -63,17 +70,24 @@ cudaError_t cuda_hll_init(struct hll *hll, double *data, int *col_index, int *ma
     }
     err = cudaMemcpy(col_index, hll->col_index, hll->data_num * sizeof(int), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
-        cudaFree(*data);
-        cudaFree(*col_index);
-        cudaFree(*row_pointer);
+        cudaFree(data);
+        cudaFree(col_index);
+        cudaFree(row_pointer);
         return err;
     }
     err = cudaMemcpy(maxnzr, hll->max_nzr, hll->hacks_num * sizeof(int), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
-        cudaFree(*data);
-        cudaFree(*col_index);
-        cudaFree(*row_pointer);
+        cudaFree(data);
+        cudaFree(col_index);
+        cudaFree(row_pointer);
         return err;
+    }
+    err = cudaMemcpy(offsets, hll->offsets, hll->offsets_num * sizeof(int), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        cudaFree(data);
+        cudaFree(col_index);
+        cudaFree(row_pointer);
+        cudaFree(maxnzr);
     }
     return err;
 }
@@ -139,7 +153,8 @@ int main(int argc, char **argv) {
     double *d_data;
     int *d_col_index;
     int *d_maxnzr;
-    cudaError_t err = cuda_hll_init(&sm, &d_data, &d_col_index, &d_maxnzr);
+    int *d_offsets;
+    cudaError_t err = cuda_hll_init(&sm, &d_data, &d_col_index, &d_maxnzr, &d_offset);
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         hll_cleanup(&sm);
@@ -180,7 +195,7 @@ int main(int argc, char **argv) {
     // Perform SAXPY on 1M elements
     // 1 number of block in the grid
     // m number of the thread in the block
-    product<<<2, 1024>>>(d_result, d_row_pointer, sm.hacks_num, d_data, d_col_index, d_maxnzr, d_v, m, sm.hack_size);
+    cuda_spmv_hll<<<2, 1024>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, m);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
