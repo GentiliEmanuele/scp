@@ -38,56 +38,52 @@ void print_vec(double *v, int n) {
 	}
 }
 
-cudaError_t cuda_hll_init(struct hll *hll, double *data, int *col_index, int *maxnzr, int *offsets) {
+cudaError_t cuda_hll_init(struct hll *hll, double **data, int **col_index, int **maxnzr, int **offsets) {
     cudaError_t err;
-    err = cudaMalloc(&data, sizeof(double) * hll->data_num);
+    err = cudaMalloc(data, sizeof(double) * hll->data_num);
     if (err != cudaSuccess) {
         return err;
     }
-    err = cudaMalloc(&col_index, sizeof(int) * hll->data_num);
+    err = cudaMalloc(col_index, sizeof(int) * hll->data_num);
     if (err != cudaSuccess) {
-        cudaFree(data);
+        cudaFree(*data);
         return err;
     }
-    err = cudaMalloc(&maxnzr, sizeof(int) * hll->hacks_num);
-    if (err != cudaSuccess) {
-        cudaFree(data);
-        cudaFree(col_index);
-        return err;
-    }
-    err = cudaMalloc(&offsets, sizeof(int) * hll->offsets_num);
-    if (err != cudaSuccess) {
-        cudaFree(data);
-        cudaFree(col_index);
-        cudaFree(maxnzr);
-    }
-    err = cudaMemcpy(data, hll->data, hll->data_num * sizeof(double), cudaMemcpyHostToDevice);
+    err = cudaMalloc(maxnzr, sizeof(int) * hll->hacks_num);
     if (err != cudaSuccess) {
         cudaFree(*data);
         cudaFree(*col_index);
-        cudaFree(*row_pointer);
         return err;
     }
-    err = cudaMemcpy(col_index, hll->col_index, hll->data_num * sizeof(int), cudaMemcpyHostToDevice);
+    err = cudaMalloc(offsets, sizeof(int) * hll->offsets_num);
     if (err != cudaSuccess) {
-        cudaFree(data);
-        cudaFree(col_index);
-        cudaFree(row_pointer);
+        cudaFree(*data);
+        cudaFree(*col_index);
+        cudaFree(*maxnzr);
+    }
+    err = cudaMemcpy(*data, hll->data, hll->data_num * sizeof(double), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        cudaFree(*data);
+        cudaFree(*col_index);
         return err;
     }
-    err = cudaMemcpy(maxnzr, hll->max_nzr, hll->hacks_num * sizeof(int), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(*col_index, hll->col_index, hll->data_num * sizeof(int), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
-        cudaFree(data);
-        cudaFree(col_index);
-        cudaFree(row_pointer);
+        cudaFree(*data);
+        cudaFree(*col_index);
         return err;
     }
-    err = cudaMemcpy(offsets, hll->offsets, hll->offsets_num * sizeof(int), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(*maxnzr, hll->max_nzr, hll->hacks_num * sizeof(int), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
-        cudaFree(data);
-        cudaFree(col_index);
-        cudaFree(row_pointer);
-        cudaFree(maxnzr);
+        cudaFree(*data);
+        cudaFree(*col_index);
+        return err;
+    }
+    err = cudaMemcpy(*offsets, hll->offsets, hll->offsets_num * sizeof(int), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        cudaFree(*data);
+        cudaFree(*col_index);
+        cudaFree(*maxnzr);
     }
     return err;
 }
@@ -143,7 +139,7 @@ int main(int argc, char **argv) {
         return -1;
     }
     struct hll sm;
-    if (hll_init(&sm, &mm)) {
+    if (hll_init(&sm, 32, &mm)) {
         mtx_cleanup(&mm);
         return -1;
     }
@@ -154,7 +150,7 @@ int main(int argc, char **argv) {
     int *d_col_index;
     int *d_maxnzr;
     int *d_offsets;
-    cudaError_t err = cuda_hll_init(&sm, &d_data, &d_col_index, &d_maxnzr, &d_offset);
+    cudaError_t err = cuda_hll_init(&sm, &d_data, &d_col_index, &d_maxnzr, &d_offsets);
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         hll_cleanup(&sm);
@@ -235,7 +231,6 @@ int main(int argc, char **argv) {
     free(v);
     cudaFree(d_data);
     cudaFree(d_col_index);
-    cudaFree(d_row_pointer);
     cudaFree(d_result);
-    csr_cleanup(&sm);
+    hll_cleanup(&sm);
 }
