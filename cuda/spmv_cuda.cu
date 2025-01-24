@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 
-#define num_of_rows(hacks_num, num_rows, h) ((hacks_num - 1 == h && num_rows % hack_size) ? num_rows % hack_size : hack_size)
+#define num_of_rows(hacks_num, num_rows, h, hack_size) ((hacks_num - 1 == h && num_rows % hack_size) ? num_rows % hack_size : hack_size)
 
 __global__ void spmv_csr(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -19,9 +19,9 @@ __global__ void spmv_csr(double *res, int *row_pointer, double *data, int *col_i
     }
 }
 
-__global__ void spmv_hll(double *res, int *row_pointer, int hacks_num, double *data, int *col_index,  int *max_nzr, double *v, int n) {
+__global__ void spmv_hll(double *res, int *row_pointer, int hacks_num, double *data, int *col_index,  int *max_nzr, double *v, int n, int hack_size) {
     int h = blockDim.x * blockIdx.x + threadIdx.x;
-    for (int r = 0; r < num_of_rows(hacks_num, n, h); ++r) {
+    for (int r = 0; r < num_of_rows(hacks_num, n, h, hack_size); ++r) {
         double sum = 0.0;
         for (int j = 0; j < max_nzr[h]; ++j) {
             int k = offsets[h] + r * max_nzr[h] + j;
@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
     // Perform SAXPY on 1M elements
     // 1 number of block in the grid
     // m number of the thread in the block
-    product<<<2, 1024>>>(d_result, d_row_pointer, sm.hacks_num, d_data, d_col_index, d_maxnzr, d_v, m);
+    product<<<2, 1024>>>(d_result, d_row_pointer, sm.hacks_num, d_data, d_col_index, d_maxnzr, d_v, m, sm.hack_size);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
