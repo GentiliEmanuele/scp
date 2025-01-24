@@ -9,6 +9,12 @@
 
 #define EPS (1e-6)
 
+void print_vec(double *v, int n) {
+	for (int i = 0; i < n; i++) {
+		printf("%d %lf\n", i, v[i]);
+	}
+}
+
 int test_csr(const char *file) {
     struct MatrixMarket mm;
     if (read_mtx(file, &mm)) {
@@ -42,6 +48,7 @@ int test_csr(const char *file) {
         printf("(csr) test failed for matrix: %s\n", file);
         return 1;
     }
+    print_vec(mm.data, 10);
     mtx_cleanup(&mm);
     csr_cleanup(&sm);
     return 0;

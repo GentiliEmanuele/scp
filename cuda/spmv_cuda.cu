@@ -138,8 +138,6 @@ int main(int argc, char **argv) {
     }
     double *result = d_zeros(m);
     cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
-    char r_path[256];
-    sprintf(r_path, "%s.result", argv[1]);
     double *py_result = d_zeros(m);
     if (spmv_csr_par(py_result, &sm, v, m)) {
         printf("cannot execute csr product\n");

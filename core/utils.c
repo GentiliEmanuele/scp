@@ -48,7 +48,7 @@ static int __parse_rows(FILE *f, struct MatrixMarket *mm) {
     if (!items) {
         err = -1;
         goto no_items;
-    }
+    }isSearching.getValue()
     double *packed_data = malloc(mm->nz * sizeof(double));
     if (!packed_data) {
         err = -1;
@@ -57,7 +57,7 @@ static int __parse_rows(FILE *f, struct MatrixMarket *mm) {
     int real_nz = 0;
     int explicit_zeros = 0;
     for (int k = 0; k < mm->nz; k++) {
-        if (readline(f, &items[real_nz], packed_data, mm)) {
+        if (readline(f, &items[real_nz], &packed_data[k], mm)) {
             int i = items[real_nz].row;
             int j = items[real_nz].col;
             items[real_nz].pos = k;
