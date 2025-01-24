@@ -8,8 +8,8 @@ __global__ void product(double *res, int *row_pointer, double *data, int *col_in
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i < n) {
         double sum = 0.0;
-        for (int j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {
-            sum += csr->data[j] * v[csr->col_index[j]];
+        for (int j = row_pointer[i]; j < row_pointer[i+1]; ++j) {
+            sum += data[j] * v[col_index[j]];
         }
         res[i] = sum;
     }
@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
         mtx_cleanup(&mm);
         return 1;
     }
+    mtx_cleanup(&mm);
     int m = sm.num_rows;
     int n = sm.num_cols;
     double *v = d_zeros(m);
@@ -64,7 +65,12 @@ int main(int argc, char **argv) {
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
-        goto cuda_error:
+	cudaFree(d_data);
+    	cudaFree(d_col_index);
+    	cudaFree(d_row_pointer);
+    	cudaFree(d_result);
+    	csr_cleanup(&sm);
+        return 1;
     }
     double *result = d_zeros(m);
     cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
@@ -80,11 +86,9 @@ int main(int argc, char **argv) {
     free(py_result);
     free(result);
     free(v);
-cuda_error:
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_row_pointer);
     cudaFree(d_result);
     csr_cleanup(&sm);
-    mtx_cleanup(&mm);
 }
