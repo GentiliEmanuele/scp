@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 
-__global__ void product(struct csr *csr, double *res,  double *v, int n) {
+__global__ void product(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i < n) {
         double sum = 0.0;
@@ -53,13 +53,19 @@ int main(int argc, char **argv) {
     double *d_v;
     cudaMalloc(&d_v, sm.num_rows * sizeof(double));
     cudaMemcpy(d_data, sm.data, sm.num_data * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_col_index, sm.col_index, sm.num_data * sizeof(int), cudaMemcpyHostToDevice);    cudaMemcpy(d_row_pointer, sm.row_pointer, (sm.num_rows + 1) * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_col_index, sm.col_index, sm.num_data * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_row_pointer, sm.row_pointer, (sm.num_rows + 1) * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_v, v, sm.num_rows * sizeof(double), cudaMemcpyHostToDevice);
 
     // Perform SAXPY on 1M elements
     // 1 number of block in the grid
     // m number of the thread in the block
-    product<<<2, 1024>>>(&sm, d_result, v, m);
+    product<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+        goto cuda_error:
+    }
     double *result = d_zeros(m);
     cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
     char r_path[256];
@@ -71,13 +77,14 @@ int main(int argc, char **argv) {
     } else printf("test passed \n");
     print_vec(result, 10);
     print_vec(py_result, 10);
+    free(py_result);
+    free(result);
+    free(v);
+cuda_error:
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_row_pointer);
     cudaFree(d_result);
-    free(py_result);
-    free(result);
-    free(v);
     csr_cleanup(&sm);
     mtx_cleanup(&mm);
 }
