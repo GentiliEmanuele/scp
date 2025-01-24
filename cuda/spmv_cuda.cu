@@ -5,7 +5,7 @@
 #include <cuda_runtime.h>
 
 __global__ void product(struct csr *csr, double *res,  double *v, int n) {
-    int i = blockIdx.x + threadIdx.x;
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i < n) {
         double sum = 0.0;
         for (int j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {
@@ -13,6 +13,12 @@ __global__ void product(struct csr *csr, double *res,  double *v, int n) {
         }
         res[i] = sum;
     }
+}
+
+void print_vec(double *v, int n) {
+	for (int i = 0; i < n; i++) {
+		printf("%d %lg\n", i, v[i]);
+	}
 }
 
 
@@ -53,10 +59,9 @@ int main(int argc, char **argv) {
     // Perform SAXPY on 1M elements
     // 1 number of block in the grid
     // m number of the thread in the block
-    int N = 1<<20;
-    product<<<1, m>>>(&sm, d_result, v, n);
+    product<<<2, 1024>>>(&sm, d_result, v, m);
     double *result = d_zeros(m);
-    cudaMemcpy(d_result, result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
     char r_path[256];
     sprintf(r_path, "%s.result", argv[1]);
     double *py_result = d_zeros(m);
@@ -64,7 +69,8 @@ int main(int argc, char **argv) {
     if (!d_veceq(py_result, result, m, 1e-6)) {
         printf("test failed!\n");
     } else printf("test passed \n");
-    
+    print_vec(result, 10);
+    print_vec(py_result, 10);
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_row_pointer);
