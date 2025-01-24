@@ -48,7 +48,7 @@ static int __parse_rows(FILE *f, struct MatrixMarket *mm) {
     if (!items) {
         err = -1;
         goto no_items;
-    }isSearching.getValue()
+    }
     double *packed_data = malloc(mm->nz * sizeof(double));
     if (!packed_data) {
         err = -1;
