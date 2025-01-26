@@ -21,7 +21,7 @@ __global__ void cuda_spmv_csr(double *res, int *row_pointer, double *data, int *
 
 __global__ void cuda_spmv_hll(double *res, int hack_size, int hacks_num, double *data, int *offsets, int *col_index,  int *max_nzr, double *v, int n) {
     int h = blockDim.x * blockIdx.x + threadIdx.x;
-    if (h < n) {
+    if (h < hacks_num) {
     	int rows = num_of_rows(0, hack_size, hacks_num, n);
     	for (int r = 0; r < num_of_rows(h, hack_size, hacks_num, n); ++r) {
         	double sum = 0.0;

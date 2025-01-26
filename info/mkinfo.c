@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
         if (read_mtx(line, &mm)) {
             continue;
         }
+        printf("%s\n", line);
         double avg;
         int max;
         if (avg_nzr(&mm, &avg, &max)) {
