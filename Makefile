@@ -24,9 +24,9 @@ omp_pytest:
 	mkdir -p build
 	gcc -g core/*.c omp/spmv_*.c omp/omp_main_pytest.c -o build/openmp_pytest.exe -fopenmp -lm -Icore -Iomp
 
-info:
+footprint:
 	mkdir -p build
-	gcc -g core/mkinfo.c core/utils.c core/mmio.c core/hll.c core/csr.c -o build/mkinfo.exe -Icore
+	gcc -g info/mkinfo.c core/utils.c core/mmio.c core/hll.c core/csr.c -o build/mkinfo.exe -Icore
 
 clean:
 	rm -rf build/
