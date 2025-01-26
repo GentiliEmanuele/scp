@@ -206,7 +206,11 @@ int main(int argc, char **argv) {
         return 1;
     }
     double *result = d_zeros(m);
-    cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
+    err = cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
+    if (err != cudaSuccess) {
+        printf("cudaMemcpy failed\n");
+        return 1;
+    }
     double *py_result = d_zeros(m);
     if (spmv_hll_par(py_result, &sm, v, m)) {
         printf("cannot execute csr product\n");
