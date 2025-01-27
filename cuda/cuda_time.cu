@@ -19,7 +19,7 @@ int parse_test_type(char *s) {
 
 int main(int argc, char *argv[]) {
     --argc;
-    if (argc != 4 || argc != 5) {
+    if (argc != 4 && argc != 5) {
         printf("see usage: program output matrices_list runs_num [hll|csr] {hack_size}\n");
         return -1;
     }
@@ -71,8 +71,8 @@ int main(int argc, char *argv[]) {
     char line[1024];
     while (fgets(line, 1024, iff) != NULL) {
         int n = strlen(line);
-        if (line[n] == '\n') {
-            --n;
+        if (line[--n] == '\n') {
+            line[n] = 0;
         }
         printf("matrix %s\n", argv[1]);
         ti.flops = 0.0;
