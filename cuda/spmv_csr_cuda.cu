@@ -126,8 +126,8 @@ int csr_time(const char *path, float time, int runs_num, struct time_info *ti) {
         cudaEventElapsedTime(&m, start, stop);
         sum += m;
     }
-    ti.millis = sum / runs_num;
-    ti.flops = (2 * nz) / ti.millis;
+    ti->millis = sum / runs_num;
+    ti->flops = (2 * nz) / ti->millis;
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_result);
