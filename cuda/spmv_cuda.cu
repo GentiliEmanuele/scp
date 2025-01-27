@@ -1,5 +1,7 @@
 #include "spmv_cuda.h"
 
+#define num_of_rows(h, hack_size, hacks_num, num_rows) ((hacks_num - 1 == h && num_rows % hack_size) ? num_rows % hack_size : hack_size)
+
 __global__ void cuda_spmv_hll(double *res, int hack_size, int hacks_num, double *data, int *offsets, int *col_index,  int *max_nzr, double *v, int n) {
     int h = blockDim.x * blockIdx.x + threadIdx.x;
     if (h < hacks_num) {
