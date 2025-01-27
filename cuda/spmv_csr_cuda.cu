@@ -106,7 +106,7 @@ int csr_time(const char *path, float time, int runs_num, struct time_info *ti) {
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    for (int i = 0; i < num_runs; i++) {
+    for (int i = 0; i < runs_num; i++) {
         cudaEventRecord(start);
         cuda_spmv_csr<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
         cudaEventRecord(stop);
@@ -126,8 +126,8 @@ int csr_time(const char *path, float time, int runs_num, struct time_info *ti) {
         cudaEventElapsedTime(&m, start, stop);
         sum += m;
     }
-    ti->millis = sum / runs_num;
-    ti->flops = (2 * nz) / ti->millis;
+    ti.millis = sum / runs_num;
+    ti.flops = (2 * nz) / ti.millis;
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_result);
