@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     if (hack_size) {
         sprintf(filename, "%s_%d_%d.csv", argv[1], runs_num, hack_size);
     } else {
-        sprintf(filename, "%s_%d.csv", argv[1], runs_num)
+        sprintf(filename, "%s_%d.csv", argv[1], runs_num);
     }
     FILE* off = fopen(filename, "w");
     if (off == NULL) {
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     fprintf(off, "matrix,time,flops\n");
     INIT_TIME_INFO(ti);
     char line[1024];
-    while (fgets(line, 1024, fp) != NULL) {
+    while (fgets(line, 1024, iff) != NULL) {
         int n = strlen(line);
         if (line[n] == '\n') {
             --n;
