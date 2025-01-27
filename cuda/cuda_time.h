@@ -6,8 +6,8 @@ extern "C"
 #endif
 
 struct time_info {
-    float *millis;
-    float *flops;
+    float millis;
+    float flops;
 };
 
 #define INIT_TIME_INFO(name) struct time_info name {.millis = 0, .flops = 0};
