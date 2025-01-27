@@ -59,7 +59,7 @@ int csr_time(const char *path, float time, int num_runs, struct time_info *ti) {
     }
     mtx_cleanup(&mm);
     double *d_data;
-    int *d_col_index
+    int *d_col_index;
     int *d_row_pointer;
     cudaError_t err = cuda_csr_init(&sm, &d_data, &d_col_index, &d_row_pointer);
     if (err != cudaSuccess) {
@@ -73,7 +73,6 @@ int csr_time(const char *path, float time, int num_runs, struct time_info *ti) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
-    	cudaFree(d_maxnzr);
         cudaFree(d_row_pointer);
     	csr_cleanup(&sm);
         return 1;
@@ -115,7 +114,6 @@ int csr_time(const char *path, float time, int num_runs, struct time_info *ti) {
             printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
 	        cudaFree(d_data);
             cudaFree(d_col_index);
-            cudaFree(d_maxnzr);
             cudaFree(d_result);
             cudaFree(d_row_pointer);
             cudaFree(d_v);
@@ -131,7 +129,6 @@ int csr_time(const char *path, float time, int num_runs, struct time_info *ti) {
     ti->flops = (2 * nz) / ti->millis;
     cudaFree(d_data);
     cudaFree(d_col_index);
-    cudaFree(d_maxnzr);
     cudaFree(d_result);
     cudaFree(d_row_pointer);
     cudaFree(d_v);
