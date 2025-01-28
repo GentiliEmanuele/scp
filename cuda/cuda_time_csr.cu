@@ -7,6 +7,13 @@
 #include "spmv_cuda.h"
 #include "cuda_mtx.h"
 
+void print_vec(double *v, int n) {
+    for (int i = 0; i < n; i++)
+    {
+        printf("%d %f\n", i, v[i]);
+    }
+}
+
 int csr_time(const char *path, int runs_num, struct time_info *ti) {
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
@@ -86,6 +93,12 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
         cudaEventElapsedTime(&m, start, stop);
         sum += m;
     }
+    double *result = d_zeros(sm.num_rows);
+    err = cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
+    if (err != cudaSuccess) {
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+    }
+    print_vec(result, 10);
     ti->millis = sum / runs_num;
     ti->flops = (2 * nz) / ti->millis;
     cudaFree(d_data);
