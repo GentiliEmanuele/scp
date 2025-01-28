@@ -37,13 +37,13 @@ int main(int argc, char *argv[]) {
 
     int hack_size = 0;
     if (test_type == HLL) {
-        if (argc == 5)
+        if (argc == 5) {
             hack_size = atoi(argv[5]);
             if (hack_size == 0) {
                 printf("An error occurred while converting hack_size\n");
                 return -1;
             }
-        else {
+        } else {
             hack_size = 32;
             printf("no hack_size specified, default value (32) set\n");
         }
