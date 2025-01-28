@@ -7,12 +7,6 @@
 #include "spmv_cuda.h"
 #include "cuda_mtx.h"
 
-void print_vec(double *v, int n) {
-    for (int i = 0; i < n; i++)
-    {
-        printf("%d %f\n", i, v[i]);
-    }
-}
 
 int csr_time(const char *path, int runs_num, struct time_info *ti) {
     struct MatrixMarket mm;

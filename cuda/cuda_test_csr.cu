@@ -1,4 +1,5 @@
 #include "cuda_test.h"
+#include "spmv_cuda.h"
 #include "cuda_mtx.h"
 #include "csr.h"
 #include "spmv_openmp.h"
@@ -60,7 +61,7 @@ int csr_test(const char *path) {
         return 1;
     }
     for (int i = 0; i < 1; i++) {
-        cuda_spmv_csr<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
+        cuda_spmv_csr<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));

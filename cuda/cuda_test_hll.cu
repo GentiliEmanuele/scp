@@ -1,4 +1,5 @@
 #include "cuda_test.h"
+#include "spmv_cuda.h"
 #include "cuda_mtx.h"
 #include "hll.h"
 #include "spmv_openmp.h"

@@ -22,7 +22,7 @@ add_library(time_lib SHARED
     core/vec.h core/vec.c
     cuda/cuda_time.h cuda/cuda_time_csr.cu cuda/cuda_time_hll.cu
     cuda/spmv_cuda.h cuda/spmv_cuda.cu
-    cuda/test.h cuda/test_csr.cu cuda/test_hll.cu
+    cuda/cuda_test.h cuda/cuda_test_csr.cu cuda/cuda_test_hll.cu
     cuda/cuda_mtx.h cuda/cuda_mtx.cu)
 target_include_directories(time_lib PUBLIC core cuda omp)
 target_link_libraries(get_time PUBLIC time_lib)
