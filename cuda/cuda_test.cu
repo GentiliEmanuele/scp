@@ -102,7 +102,10 @@ int csr_test(char *path) {
     }
     double *par_result = d_zeros(m);
     double *gpu_result = d_zeros(m);
-    cudaMemcpy(gpu_result, d_result, sizeof(double) * m, cudaMemcpyDeviceToHost);
+    err = cudaMemcpy(gpu_result, d_result, sizeof(double) * m, cudaMemcpyDeviceToHost);
+    if (err != cudaSuccess) {
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+    }
     if(spmv_csr_par(par_result, &sm, v, m)) {
         printf("An error occurred executing spmv_csr_par");
     } else if (d_veceq(par_result, gpu_result, sm.num_rows, 1e-6)) {
@@ -189,8 +192,10 @@ int hll_test(char *path, int hack_size) {
         return -1;
     }
     double *result = d_zeros(sm.num_rows);
-    cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
-    
+    err = cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
+    if (err != cudaSuccess) {
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+    }
     double *test_result = d_zeros(sm.num_rows);
     if (spmv_hll_par(test_result, &sm, v, sm.num_rows)) {
         printf("spmv_hll_par failed\n");
