@@ -5,47 +5,7 @@
 #include <cuda_runtime.h>
 #include "cuda_time.h"
 #include "spmv_cuda.h"
-
-cudaError_t cuda_csr_init(struct csr *csr, double **data, int **col_index, int **row_pointer) {
-    cudaError_t err;
-    err = cudaMalloc(data, sizeof(double) * csr -> num_data);
-    if (err != cudaSuccess) {
-        return err;
-    }
-    err = cudaMalloc(col_index, sizeof(int) * csr ->num_data);
-    if (err != cudaSuccess) {
-        cudaFree(*data);
-        return err;
-    }
-    err = cudaMalloc(row_pointer, sizeof(int) * (csr -> num_rows + 1));
-    if (err != cudaSuccess) {
-        cudaFree(*data);
-        cudaFree(*col_index);
-        return err;
-    }
-    err = cudaMemcpy(*data, csr -> data, csr->num_data * sizeof(double), cudaMemcpyHostToDevice);
-    if (err != cudaSuccess) {
-        cudaFree(*data);
-        cudaFree(*col_index);
-        cudaFree(*row_pointer);
-        return err;
-    }
-    err = cudaMemcpy(*col_index, csr->col_index, csr->num_data * sizeof(int), cudaMemcpyHostToDevice);
-    if (err != cudaSuccess) {
-        cudaFree(*data);
-        cudaFree(*col_index);
-        cudaFree(*row_pointer);
-        return err;
-    }
-    err = cudaMemcpy(*row_pointer, csr->row_pointer, (csr->num_rows + 1) * sizeof(int), cudaMemcpyHostToDevice);
-    if (err != cudaSuccess) {
-        cudaFree(*data);
-        cudaFree(*col_index);
-        cudaFree(*row_pointer);
-        return err;
-    }
-    return cudaSuccess;
-}
+#include "cuda_mtx.h"
 
 int csr_time(const char *path, int runs_num, struct time_info *ti) {
     struct MatrixMarket mm;

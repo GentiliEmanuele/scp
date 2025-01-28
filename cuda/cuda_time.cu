@@ -55,7 +55,6 @@ int main(int argc, char *argv[]) {
     } else {
         sprintf(filename, "%s_%d.csv", argv[1], runs_num);
     }
-    printf("filename %s\n", filename);
     FILE* off = fopen(filename, "w");
     if (off == NULL) {
         printf("cannot open file %s\n", filename);

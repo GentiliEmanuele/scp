@@ -12,7 +12,9 @@ find_package(CUDA REQUIRED)
 
 add_executable(gpu_info cuda/gpuinfo.cu)
 add_executable(get_time cuda/cuda_time.cu)
+add_executable(do_test cuda/cuda_test.cu)
 add_library(time_lib SHARED 
+    omp/spmv_openmp.h omp/spmv_openmp.c
     core/csr.h core/csr.c
     core/hll.h core/hll.c
     core/mmio.h core/mmio.c
@@ -20,8 +22,10 @@ add_library(time_lib SHARED
     core/vec.h core/vec.c
     cuda/cuda_time.h cuda/spmv_csr_cuda.cu cuda/cuda_time_hll.cu
     cuda/spmv_cuda.h cuda/spmv_cuda.cu)
-target_include_directories(time_lib PUBLIC core cuda)
+target_include_directories(time_lib PUBLIC core cuda omp)
 target_link_libraries(get_time PUBLIC time_lib)
+target_link_libraries(do_test PUBLIC time_lib)
+target_link_libraries(do_test PUBLIC ${CUDA_LIBRARIES})
 target_link_libraries(get_time PUBLIC ${CUDA_LIBRARIES})
 target_link_libraries(gpu_info PUBLIC ${CUDA_LIBRARIES})
 set_target_properties(time_lib PROPERTIES LINKER_LANGUAGE C)
