@@ -51,10 +51,11 @@ int main(int argc, char *argv[]) {
     
     char filename[1024];
     if (hack_size) {
-        sprintf(filename, "%s_%d_%d.csv", argv[2], runs_num, hack_size);
+        sprintf(filename, "%s_%d_%d.csv", argv[1], runs_num, hack_size);
     } else {
-        sprintf(filename, "%s_%d.csv", argv[2], runs_num);
+        sprintf(filename, "%s_%d.csv", argv[1], runs_num);
     }
+    printf("filename %s\n", filename);
     FILE* off = fopen(filename, "w");
     if (off == NULL) {
         printf("cannot open file %s\n", filename);
