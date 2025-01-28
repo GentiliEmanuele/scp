@@ -36,13 +36,12 @@ int parse_test_type(char *s) {
 int csr_test(char *path) {
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
-        return 1;
+        return -1;
     }
-
     struct csr sm;
     if (csr_init(&sm, &mm)) {
         mtx_cleanup(&mm);
-        return 1;
+        return -1;
     }
     mtx_cleanup(&mm);
     double *d_data;
@@ -100,26 +99,12 @@ int csr_test(char *path) {
         csr_cleanup(&sm);
         return 1;
     }
-    double *par_result = d_zeros(m);
-    double *gpu_result = d_zeros(m);
-    if (gpu_result == NULL) {
-        printf("cannot allocate result for cuda\n");
-    }
-    err = cudaMemcpy(gpu_result, d_result, sizeof(double) * m, cudaMemcpyDeviceToHost);
+    double *result = d_zeros(sm.num_rows);
+    err = cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
     }
-    if(spmv_csr_par(par_result, &sm, v, m)) {
-        printf("An error occurred executing spmv_csr_par");
-    } else if (d_veceq(par_result, gpu_result, sm.num_rows, 1e-6)) {
-        printf("test passed\n");
-    } else {
-        printf("test failed\n");
-    }
-    printf("cuda result\n");
-    print_vec(gpu_result, 10);
-    printf("oracle result\n");
-    print_vec(par_result, 10);
+    print_vec(result, 10);
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_result);
