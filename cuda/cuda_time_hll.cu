@@ -117,9 +117,9 @@ int hll_time(const char *path, int hack_size, struct time_info *ti, int runs_num
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    for (int i = 0; i < nruns; ++i) {
+    for (int i = 0; i < runs_num; ++i) {
         cudaEventRecord(start);
-        cuda_spmv_hll<<<2, 1024>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, m);
+        cuda_spmv_hll<<<2, 1024>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
         cudaEventRecord(stop);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
@@ -143,7 +143,8 @@ int hll_time(const char *path, int hack_size, struct time_info *ti, int runs_num
     cudaFree(d_col_index);
     cudaFree(d_maxnzr);
     cudaFree(d_result);
-    cudaFree(d_v)
+    cudaFree(d_v);
     free(v);
     hll_cleanup(&sm);
+    return 0;
 }

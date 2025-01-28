@@ -135,5 +135,6 @@ int csr_time(const char *path, float time, int runs_num, struct time_info *ti) {
     cudaFree(d_v);
     csr_cleanup(&sm);
     free(v);
+    return 0;
 }
 
