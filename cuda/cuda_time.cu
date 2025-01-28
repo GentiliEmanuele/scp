@@ -51,9 +51,9 @@ int main(int argc, char *argv[]) {
     
     char filename[1024];
     if (hack_size) {
-        sprintf(filename, "%s_%d_%d.csv", argv[1], runs_num, hack_size);
+        sprintf(filename, "%s_%d_%d.csv", argv[2], runs_num, hack_size);
     } else {
-        sprintf(filename, "%s_%d.csv", argv[1], runs_num);
+        sprintf(filename, "%s_%d.csv", argv[2], runs_num);
     }
     FILE* off = fopen(filename, "w");
     if (off == NULL) {
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
         if (line[--n] == '\n') {
             line[n] = 0;
         }
-        printf("matrix %s\n", argv[1]);
+        printf("matrix %s\n", line);
         ti.flops = 0.0;
         ti.millis = 0.0;
         if (test_type == CSR) {
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
         } else if (test_type == HLL) {
             hll_time(line, runs_num, hack_size, &ti);
         }
-        fprintf(off, "\"%s\",%f,%f\n", argv[1], ti.millis, ti.flops);
+        fprintf(off, "\"%s\",%f,%f\n", line, ti.millis, ti.flops);
     }
     fclose(iff);
     fclose(off);
