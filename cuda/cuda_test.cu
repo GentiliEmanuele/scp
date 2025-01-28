@@ -87,6 +87,10 @@ int csr_test(char *path) {
         csr_cleanup(&sm);
         return 1;
     }
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start);
     cuda_spmv_csr<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
@@ -99,6 +103,11 @@ int csr_test(char *path) {
         csr_cleanup(&sm);
         return 1;
     }
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    float m = 0.0;
+    cudaEventElapsedTime(&m, start, stop);
+    printf("time=%f\n", m)
     double *result = d_zeros(sm.num_rows);
     err = cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) {
