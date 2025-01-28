@@ -58,7 +58,7 @@ cudaError_t cuda_hll_init(struct hll *hll, double **data, int **col_index, int *
     return err;
 }
 
-int hll_time(const char *path, int hack_size, struct time_info *ti, int runs_num) {
+int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti) {
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;

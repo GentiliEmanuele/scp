@@ -47,7 +47,7 @@ cudaError_t cuda_csr_init(struct csr *csr, double **data, int **col_index, int *
     return cudaSuccess;
 }
 
-int csr_time(const char *path, float time, int runs_num, struct time_info *ti) {
+int csr_time(const char *path, int runs_num, struct time_info *ti) {
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;
