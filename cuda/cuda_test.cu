@@ -9,8 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define pr_err(err) printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err))
-
 #define NOTEST 0
 #define CSR    1
 #define HLL    2
@@ -29,6 +27,44 @@ int parse_test_type(char *s) {
         return HLL;
     } else {
         return NOTEST;
+    }
+}
+
+int csr_test(const char *path);
+int hll_test(char *path, int hack_size);
+
+int main(int argc, char *argv[]) {
+    --argc;
+    if (argc != 2 && argc != 3) {
+        printf("see usage: program matrix [hll|csr] {hack_size}\n");
+        return -1;
+    }
+
+    int test_type = parse_test_type(argv[2]);
+    if (test_type == NOTEST) {
+        printf("expected one of csr or hll but got %s\n", argv[2]);
+        return -1;
+    }
+
+    int hack_size = 0;
+    if (test_type == HLL) {
+        if (argc == 3) {
+            hack_size = atoi(argv[3]);
+            if (hack_size == 0) {
+                printf("An error occurred while converting hack_size\n");
+                return -1;
+            }
+        } else {
+            hack_size = 32;
+            printf("no hack_size specified, default value (32) set\n");
+        }
+    }
+    
+    printf("matrix %s\n", argv[1]);
+    if (test_type == CSR) {
+        csr_test(argv[1]);
+    } else if (test_type == HLL) {
+        hll_test(argv[1], hack_size);
     }
 }
 
@@ -134,14 +170,14 @@ int hll_test(char *path, int hack_size) {
     int *d_offsets;
     cudaError_t err = cuda_hll_init(&sm, &d_data, &d_col_index, &d_maxnzr, &d_offsets);
     if (err != cudaSuccess) {
-        pr_err(err);
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         hll_cleanup(&sm);
         return -1;
     }
     double *d_result;
     err = cudaMalloc(&d_result, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
-        pr_err(err);
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
     	cudaFree(d_maxnzr);
@@ -151,7 +187,7 @@ int hll_test(char *path, int hack_size) {
     double *d_v;
     err = cudaMalloc(&d_v, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
-        pr_err(err);
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
     	cudaFree(d_maxnzr);
@@ -161,7 +197,7 @@ int hll_test(char *path, int hack_size) {
     }
     err = cudaMemcpy(d_v, v, sm.num_rows * sizeof(double), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
-        pr_err(err);
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
     	cudaFree(d_maxnzr);
@@ -173,7 +209,7 @@ int hll_test(char *path, int hack_size) {
     cuda_spmv_hll<<<1024, 1024>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
-        pr_err(err);
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
         cudaFree(d_col_index);
         cudaFree(d_maxnzr);
@@ -212,39 +248,4 @@ int hll_test(char *path, int hack_size) {
     free(v);
     hll_cleanup(&sm);
     return 0;
-}
-
-int main(int argc, char *argv[]) {
-    --argc;
-    if (argc != 2 && argc != 3) {
-        printf("see usage: program matrix [hll|csr] {hack_size}\n");
-        return -1;
-    }
-
-    int test_type = parse_test_type(argv[2]);
-    if (test_type == NOTEST) {
-        printf("expected one of csr or hll but got %s\n", argv[2]);
-        return -1;
-    }
-
-    int hack_size = 0;
-    if (test_type == HLL) {
-        if (argc == 3) {
-            hack_size = atoi(argv[3]);
-            if (hack_size == 0) {
-                printf("An error occurred while converting hack_size\n");
-                return -1;
-            }
-        } else {
-            hack_size = 32;
-            printf("no hack_size specified, default value (32) set\n");
-        }
-    }
-    
-    printf("matrix %s\n", argv[1]);
-    if (test_type == CSR) {
-        csr_test(argv[1]);
-    } else if (test_type == HLL) {
-        hll_test(argv[1], hack_size);
-    }
 }
