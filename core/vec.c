@@ -40,3 +40,10 @@ int read_vector(double *vector, int n, const char *path) {
     }
     return 0;
 }
+
+void print_vec(double *v, int n) {
+    for (int i = 0; i < n; i++)
+    {
+        printf("%d %f\n", i, v[i]);
+    }
+}

@@ -20,6 +20,8 @@ int d_veceq(double *u, double *v, int n, double eps);
 
 int read_vector(double *vector, int n, const char *path);
 
+void print_vec(double *v, int n);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
