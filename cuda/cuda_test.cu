@@ -212,9 +212,9 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    int test_type = parse_test_type(argv[4]);
+    int test_type = parse_test_type(argv[2]);
     if (test_type == NOTEST) {
-        printf("expected one of csr or hll but got %s\n", argv[4]);
+        printf("expected one of csr or hll but got %s\n", argv[2]);
         return -1;
     }
 
