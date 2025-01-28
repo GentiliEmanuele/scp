@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define pr_err(err) printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err))
+
 #define NOTEST 0
 #define CSR    1
 #define HLL    2
@@ -92,7 +94,7 @@ int csr_test(char *path) {
         csr_cleanup(&sm);
         return 1;
     }
-    double *par_result = malloc(sizeof(double) * m)
+    double *par_result = malloc(sizeof(double) * m);
     if (par_result == NULL) {
         cudaFree(d_data);
         cudaFree(d_col_index);
@@ -103,7 +105,7 @@ int csr_test(char *path) {
         return 1;
     }
     double *gpu_result = d_zeros(m);
-    cudaMemcpy(gpu_result, d_result, cudaMemcpyDeviceToHost);
+    cudaMemcpy(gpu_result, d_result, sizeof(double) * m, cudaMemcpyDeviceToHost);
     if(spmv_csr_par(par_result, sm, v, m)) {
         printf("An error occurred executing spmv_csr_par");
     } else if (d_veceq(par_result, gpu_result, sm.num_rows, 1e-6)) {
@@ -190,10 +192,10 @@ int hll_test(char *path, int hack_size) {
         return -1;
     }
     double *result = d_zeros(sm.num_rows);
-    cudaMemcpy(result, d_result, cudaMemcpyDeviceToHost);
+    cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
     
     double *test_result = d_zeros(sm.num_rows);
-    if (spmv_hll_par(test_result, &sm, hack_size)) {
+    if (spmv_hll_par(test_result, &sm, v, sm.num_rows)) {
         printf("spmv_hll_par failed\n");
     } else if (d_veceq(result, test_result, sm.num_rows, 1e-6)) {
         printf("test passed\n");
