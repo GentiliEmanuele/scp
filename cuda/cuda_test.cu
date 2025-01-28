@@ -33,7 +33,7 @@ int parse_test_type(char *s) {
     }
 }
 
-int csr_test(char *path) {
+int csr_time(const char *path, int runs_num, struct time_info *ti) {
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;
@@ -43,6 +43,7 @@ int csr_test(char *path) {
         mtx_cleanup(&mm);
         return -1;
     }
+    int nz = mm.nz;
     mtx_cleanup(&mm);
     double *d_data;
     int *d_col_index;
@@ -87,33 +88,38 @@ int csr_test(char *path) {
         csr_cleanup(&sm);
         return 1;
     }
+    float sum = 0.0;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    cudaEventRecord(start);
-    cuda_spmv_csr<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
-        cudaFree(d_data);
-        cudaFree(d_col_index);
-        cudaFree(d_result);
-        cudaFree(d_row_pointer);
-        cudaFree(d_v);
-        csr_cleanup(&sm);
-        return 1;
+    for (int i = 0; i < runs_num; i++) {
+        cudaEventRecord(start);
+        cuda_spmv_csr<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
+        cudaEventRecord(stop);
+        err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+	        cudaFree(d_data);
+            cudaFree(d_col_index);
+            cudaFree(d_result);
+            cudaFree(d_row_pointer);
+            cudaFree(d_v);
+            csr_cleanup(&sm);
+            return 1;
+        }
+        cudaEventSynchronize(stop);
+        float m = 0.0;
+        cudaEventElapsedTime(&m, start, stop);
+        sum += m;
     }
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    float m = 0.0;
-    cudaEventElapsedTime(&m, start, stop);
-    printf("time=%f\n", m)
     double *result = d_zeros(sm.num_rows);
     err = cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
     }
     print_vec(result, 10);
+    ti->millis = sum / runs_num;
+    ti->flops = (2 * nz) / ti->millis;
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_result);
@@ -250,9 +256,10 @@ int main(int argc, char *argv[]) {
         }
     }
     
+    INIT_TIME_INFO(ti);
     printf("matrix %s\n", argv[1]);
     if (test_type == CSR) {
-        csr_test(argv[1]);
+        csr_time(argv[1], 1, &ti);
     } else if (test_type == HLL) {
         hll_test(argv[1], hack_size);
     }
