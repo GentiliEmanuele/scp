@@ -94,19 +94,10 @@ int csr_test(char *path) {
         csr_cleanup(&sm);
         return 1;
     }
-    double *par_result = malloc(sizeof(double) * m);
-    if (par_result == NULL) {
-        cudaFree(d_data);
-        cudaFree(d_col_index);
-        cudaFree(d_result);
-        cudaFree(d_row_pointer);
-        cudaFree(d_v);
-        csr_cleanup(&sm);
-        return 1;
-    }
+    double *par_result = d_zeros(m);
     double *gpu_result = d_zeros(m);
     cudaMemcpy(gpu_result, d_result, sizeof(double) * m, cudaMemcpyDeviceToHost);
-    if(spmv_csr_par(par_result, sm, v, m)) {
+    if(spmv_csr_par(par_result, &sm, v, m)) {
         printf("An error occurred executing spmv_csr_par");
     } else if (d_veceq(par_result, gpu_result, sm.num_rows, 1e-6)) {
         printf("test passed\n");
