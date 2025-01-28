@@ -16,6 +16,13 @@
 #define CSR    1
 #define HLL    2
 
+void print_vec(double *v, int n) {
+    for (int i = 0; i < n; i++)
+    {
+        printf("%d %f\n", i, v[i]);
+    }
+}
+
 int parse_test_type(char *s) {
     if (!strcmp(s, "csr")) {
         return CSR;
@@ -37,7 +44,6 @@ int csr_test(char *path) {
         mtx_cleanup(&mm);
         return 1;
     }
-    int nz = mm.nz;
     mtx_cleanup(&mm);
     double *d_data;
     int *d_col_index;
@@ -193,6 +199,10 @@ int hll_test(char *path, int hack_size) {
     } else {
         printf("test failed\n");
     }
+    printf("cuda result\n");
+    print_vec(result, 10);
+    printf("oracle result\n");
+    print_vec(test_result, 10);
     free(test_result);
     free(result);
     cudaFree(d_data);
