@@ -1,5 +1,6 @@
 #include "cuda_time.h"
 #include "cuda_mtx.h"
+#include "spmv_cuda.h"
 #include "csr.h"
 #include "hll.h"
 #include "utils.h"
