@@ -1,4 +1,3 @@
-#include "cuda_time.h"
 #include "cuda_mtx.h"
 #include "spmv_cuda.h"
 #include "spmv_openmp.h"
@@ -242,7 +241,6 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    INIT_TIME_INFO(ti);
     printf("matrix %s\n", argv[1]);
     if (test_type == CSR) {
         csr_test(argv[1]);

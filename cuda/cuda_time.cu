@@ -146,14 +146,14 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
     int *d_offsets;
     cudaError_t err = cuda_hll_init(&sm, &d_data, &d_col_index, &d_maxnzr, &d_offsets);
     if (err != cudaSuccess) {
-        pr_err(err);
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         hll_cleanup(&sm);
         return -1;
     }
     double *d_result;
     err = cudaMalloc(&d_result, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
-        pr_err(err);
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
     	cudaFree(d_maxnzr);
@@ -163,7 +163,7 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
     double *d_v;
     err = cudaMalloc(&d_v, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
-        pr_err(err);
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
     	cudaFree(d_maxnzr);
@@ -173,7 +173,7 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
     }
     err = cudaMemcpy(d_v, v, sm.num_rows * sizeof(double), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
-        pr_err(err);
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
     	cudaFree(d_maxnzr);
@@ -192,7 +192,7 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
         cudaEventRecord(stop);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
-            pr_err(err);
+            printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
             cudaFree(d_data);
             cudaFree(d_col_index);
             cudaFree(d_maxnzr);
