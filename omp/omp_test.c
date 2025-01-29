@@ -9,12 +9,6 @@
 
 #define EPS (1e-6)
 
-void print_vec(double *v, int n) {
-	for (int i = 0; i < n; i++) {
-		printf("%d %lf\n", i, v[i]);
-	}
-}
-
 int test_csr(const char *file) {
     struct MatrixMarket mm;
     if (read_mtx(file, &mm)) {
