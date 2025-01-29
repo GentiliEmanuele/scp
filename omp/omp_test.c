@@ -98,7 +98,7 @@ int test_hll(const char *file, int hack_size) {
         hll_cleanup(&sm);
         return 1;
     }
-    if (!d_veceq(p, s, n, EPS)) {
+    if (!d_veceq(p, s, m, EPS)) {
         printf("(hll) test failed for matrix: %s\n", file);
         csr_cleanup(&csr);
         mtx_cleanup(&mm);
