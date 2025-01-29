@@ -18,7 +18,7 @@ int hll_test(char *path, int hack_size) {
         return -1;
     }
     mtx_cleanup(&mm);
-    double *v = d_random(mm.num_rows);
+    double *v = d_random(mm.num_cols);
     double *d_data;
     int *d_col_index;
     int *d_maxnzr;
@@ -30,7 +30,7 @@ int hll_test(char *path, int hack_size) {
         return -1;
     }
     double *d_result;
-    err = cudaMalloc(&d_result, sm.num_rows * sizeof(double));
+    err = cudaMallocManaged(&d_result, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
@@ -40,7 +40,7 @@ int hll_test(char *path, int hack_size) {
         return 1;
     }
     double *d_v;
-    err = cudaMalloc(&d_v, sm.num_rows * sizeof(double));
+    err = cudaMallocManaged(&d_v, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);

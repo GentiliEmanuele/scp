@@ -49,7 +49,7 @@ int csr_test(const char *path) {
     	csr_cleanup(&sm);
         return 1;        
     }
-    double *v = d_random(sm.num_rows);
+    double *v = d_random(sm.num_cols);
     err = cudaMemcpy(d_v, v, sm.num_rows * sizeof(double), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));

@@ -23,6 +23,7 @@ inline double *d_random(int n) {
 inline int d_veceq(double *u, double *v, int n, double eps) {
     for (int i = 0; i < n; i++) {
         if (fabs(u[i] - v[i]) > eps) {
+            printf("%d: %f != %f\n", u[i], v[i]);
             return 0;
         }
     }

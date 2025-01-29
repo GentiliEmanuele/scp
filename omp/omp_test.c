@@ -36,13 +36,13 @@ int test_csr(const char *file) {
         csr_cleanup(&sm);
         return 1;
     }
-    if (!d_veceq(p, s, n, EPS)) {
+    if (!d_veceq(p, s, m, EPS)) {
         mtx_cleanup(&mm);
         csr_cleanup(&sm);
         printf("(csr) test failed for matrix: %s\n", file);
         return 1;
     }
-    print_vec(mm.data, 10);
+    print_vec(p, 10);
     mtx_cleanup(&mm);
     csr_cleanup(&sm);
     return 0;
