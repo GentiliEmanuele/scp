@@ -2,18 +2,18 @@
 
 cudaError_t cuda_csr_init(struct csr *csr, double **data, int **col_index, int **row_pointer) {
     cudaError_t err;
-    err = cudaMalloc(data, sizeof(double) * csr->num_data);
+    err = cudaMallocManaged(data, sizeof(double) * csr->num_data);
     if (err != cudaSuccess) {
         printf("cannot allocate enough memory for data\n");
         return err;
     }
-    err = cudaMalloc(col_index, sizeof(int) * csr->num_data);
+    err = cudaMallocManaged(col_index, sizeof(int) * csr->num_data);
     if (err != cudaSuccess) {
         printf("cannot allocate enough memory for col_index\n");
         cudaFree(*data);
         return err;
     }
-    err = cudaMalloc(row_pointer, sizeof(int) * (csr->num_rows + 1));
+    err = cudaMallocManaged(row_pointer, sizeof(int) * (csr->num_rows + 1));
     if (err != cudaSuccess) {
         printf("cannot allocate enough memory for row_pointer\n");
         cudaFree(*data);
@@ -46,25 +46,25 @@ cudaError_t cuda_csr_init(struct csr *csr, double **data, int **col_index, int *
 
 cudaError_t cuda_hll_init(struct hll *hll, double **data, int **col_index, int **maxnzr, int **offsets) {
     cudaError_t err;
-    err = cudaMalloc(data, sizeof(double) * hll->data_num);
+    err = cudaMallocManaged(data, sizeof(double) * hll->data_num);
     if (err != cudaSuccess) {
          printf("cannot allocate enough memory for data\n");
         return err;
     }
-    err = cudaMalloc(col_index, sizeof(int) * hll->data_num);
+    err = cudaMallocManaged(col_index, sizeof(int) * hll->data_num);
     if (err != cudaSuccess) {
          printf("cannot allocate enough memory for col_index\n");
         cudaFree(*data);
         return err;
     }
-    err = cudaMalloc(maxnzr, sizeof(int) * hll->hacks_num);
+    err = cudaMallocManaged(maxnzr, sizeof(int) * hll->hacks_num);
     if (err != cudaSuccess) {
         printf("cannot allocate enough memory for maxnzr\n");
         cudaFree(*data);
         cudaFree(*col_index);
         return err;
     }
-    err = cudaMalloc(offsets, sizeof(int) * hll->offsets_num);
+    err = cudaMallocManaged(offsets, sizeof(int) * hll->offsets_num);
     if (err != cudaSuccess) {
         printf("cannot allocate enough memory for offsets\n");
         cudaFree(*data);
