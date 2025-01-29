@@ -17,7 +17,6 @@ int hll_test(char *path, int hack_size) {
         mtx_cleanup(&mm);
         return -1;
     }
-    int nz = mm.nz;
     mtx_cleanup(&mm);
     double *v = d_random(mm.num_rows);
     double *d_data;
