@@ -44,7 +44,6 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    printf("matrix %s\n", argv[1]);
     if (test_type == CSR) {
         csr_test(argv[1]);
     } else if (test_type == HLL) {

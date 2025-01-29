@@ -84,9 +84,9 @@ int hll_test(char *path, int hack_size) {
     double *test_result = d_zeros(sm.num_rows);
     if (spmv_hll_par(test_result, &sm, v, sm.num_rows)) {
         printf("spmv_hll_par failed\n");
-    } else if (d_veceq(result, test_result, sm.num_rows, 1e-6)) {
-        printf("test passed\n");
-    } else {
+    } else if (!d_veceq(result, test_result, sm.num_rows, 1e-6)) {
+        printf("matrix %s\n", path);
+        printf("kernel(%d, %d)\n", blocks_num, threads_num);
         printf("test failed\n");
     }
     free(test_result);
