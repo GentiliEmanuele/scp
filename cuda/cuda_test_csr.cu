@@ -62,6 +62,7 @@ int csr_test(const char *path) {
     }
     int threads_num = 1024;
     int blocks_num = sm.num_rows / threads_num;
+    printf("executing kernel(%d, %d)\n", blocks_num, threads_num);
     cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
