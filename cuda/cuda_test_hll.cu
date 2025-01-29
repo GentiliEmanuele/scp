@@ -90,10 +90,6 @@ int hll_test(char *path, int hack_size) {
     } else {
         printf("test failed\n");
     }
-    printf("cuda result\n");
-    print_vec(result, 10);
-    printf("oracle result\n");
-    print_vec(test_result, 10);
     free(test_result);
     free(result);
     cudaFree(d_data);

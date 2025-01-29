@@ -60,32 +60,41 @@ int csr_test(const char *path) {
         csr_cleanup(&sm);
         return 1;
     }
-    for (int i = 0; i < 1; i++) {
-        cuda_spmv_csr<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
-        err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
-	        cudaFree(d_data);
-            cudaFree(d_col_index);
-            cudaFree(d_result);
-            cudaFree(d_row_pointer);
-            cudaFree(d_v);
-            csr_cleanup(&sm);
-            return 1;
-        }
+    int threads_num = 1024;
+    int blocks_num = sm.num_rows / threads_num;
+    cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+        cudaFree(d_data);
+        cudaFree(d_col_index);
+        cudaFree(d_result);
+        cudaFree(d_row_pointer);
+        cudaFree(d_v);
+        csr_cleanup(&sm);
+        return 1;
     }
     double *result = d_zeros(sm.num_rows);
     err = cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
     }
-    print_vec(result, 10);
+    double *test_result = d_zeros(sm.num_rows);
+    if (spmv_csr_par(test_result, &sm, v, sm.num_rows)) {
+        printf("spmv_csr_par failed\n");
+    } else if (d_veceq(result, test_result, sm.num_rows, 1e-6)) {
+        printf("test passed\n");
+    } else {
+        printf("test failed\n");
+    }
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_result);
     cudaFree(d_row_pointer);
     cudaFree(d_v);
     csr_cleanup(&sm);
+    free(test_result);
+    free(result);
     free(v);
     return 0;
 }
