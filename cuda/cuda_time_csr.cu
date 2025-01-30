@@ -66,11 +66,11 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
     for (int i = 0; i < runs_num; i++) {
         cudaEventRecord(start);
-        int threads_num = 1024;
-        int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
-        cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
+        cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
         cudaEventRecord(stop);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
