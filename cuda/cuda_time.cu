@@ -57,9 +57,9 @@ int main(int argc, char *argv[]) {
     
     char filename[1024];
     if (hack_size) {
-        sprintf(filename, "%s_%d_%d.csv", argv[1], runs_num, hack_size);
+        sprintf(filename, "%s_hll_%d_%d.csv", argv[1], runs_num, hack_size);
     } else {
-        sprintf(filename, "%s_%d.csv", argv[1], runs_num);
+        sprintf(filename, "%s_csr_%d.csv", argv[1], runs_num);
     }
     FILE* off = fopen(filename, "w");
     if (off == NULL) {

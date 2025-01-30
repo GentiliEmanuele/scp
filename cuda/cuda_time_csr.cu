@@ -93,7 +93,6 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
     }
-    print_vec(result, 10);
     ti->millis = sum / runs_num;
     ti->flops = (2 * nz) / ti->millis;
     cudaFree(d_data);
