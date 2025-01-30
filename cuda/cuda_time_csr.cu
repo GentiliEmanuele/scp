@@ -1,12 +1,12 @@
 #include "csr.h"
 #include "utils.h"
 #include "vec.h"
-#include <stdio.h>
-#include <cuda_runtime.h>
 #include "cuda_time.h"
 #include "spmv_cuda.h"
 #include "cuda_mtx.h"
-
+#include <stdio.h>
+#include <math.h>
+#include <cuda_runtime.h>
 
 int csr_time(const char *path, int runs_num, struct time_info *ti) {
     struct MatrixMarket mm;
@@ -40,7 +40,7 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
         return 1;
     }
     double *d_v;
-    err = cudaMalloc(&d_v, sm.num_rows * sizeof(double));
+    err = cudaMalloc(&d_v, sm.num_cols * sizeof(double));
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
@@ -50,9 +50,8 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
     	csr_cleanup(&sm);
         return 1;        
     }
-    int m = sm.num_rows;
-    double *v = d_random(m);
-    err = cudaMemcpy(d_v, v, sm.num_rows * sizeof(double), cudaMemcpyHostToDevice);
+    double *v = d_random(sm.num_cols);
+    err = cudaMemcpy(d_v, v, sm.num_cols * sizeof(double), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
@@ -69,7 +68,9 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
     cudaEventCreate(&stop);
     for (int i = 0; i < runs_num; i++) {
         cudaEventRecord(start);
-        cuda_spmv_csr<<<2, 1024>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
+        int threads_num = 1024;
+        int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
+        cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, m);
         cudaEventRecord(stop);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
