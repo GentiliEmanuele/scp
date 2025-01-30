@@ -12,7 +12,7 @@ omp_test_hll:
 
 omp_time_hll:
 	mkdir -p build
-	gcc -g core/*.c omp/spmv_*.c omp/omp_time.c omp/omp_main_time_hll.c -o build/omp_time_csr.exe -fopenmp -lm -Icore -Iomp
+	gcc -g core/*.c omp/spmv_*.c omp/omp_time.c omp/omp_main_time_hll.c -o build/omp_time_hll.exe -fopenmp -lm -Icore -Iomp
 
 cuda:
 	mkdir -p build/cuda
