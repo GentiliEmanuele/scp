@@ -30,7 +30,7 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
         return -1;
     }
     double *d_result;
-    err = cudaMalloc(&d_result, sm.num_rows * sizeof(double));
+    err = cudaMallocManaged(&d_result, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
@@ -40,7 +40,7 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
         return 1;
     }
     double *d_v;
-    err = cudaMalloc(&d_v, sm.num_cols * sizeof(double));
+    err = cudaMallocManaged(&d_v, sm.num_cols * sizeof(double));
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
