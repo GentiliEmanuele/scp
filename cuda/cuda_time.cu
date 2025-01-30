@@ -83,12 +83,15 @@ int main(int argc, char *argv[]) {
         printf("matrix %s\n", line);
         ti.flops = 0.0;
         ti.millis = 0.0;
+        int ir = 0;
         if (test_type == CSR) {
-            csr_time(line, runs_num, &ti);
+            ir = csr_time(line, runs_num, &ti);
         } else if (test_type == HLL) {
-            hll_time(line, runs_num, hack_size, &ti);
+            ir = hll_time(line, runs_num, hack_size, &ti);
         }
-        fprintf(off, "\"%s\",%f,%f\n", line, ti.millis, ti.flops);
+        if (!ir) {
+            fprintf(off, "\"%s\",%f,%f\n", line, ti.millis, ti.flops);
+        }
     }
     fclose(iff);
     fclose(off);
