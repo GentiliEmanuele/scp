@@ -61,7 +61,9 @@ int hll_test(char *path, int hack_size) {
         cudaFree(d_v);
         return 1;
     }
-    cuda_spmv_hll<<<1024, 1024>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.hacks_num / (double)threads_num);
+    cuda_spmv_hll<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
@@ -86,6 +88,7 @@ int hll_test(char *path, int hack_size) {
         printf("spmv_hll_par failed\n");
     } else if (!d_veceq(result, test_result, sm.num_rows, 1e-6)) {
         printf("matrix %s\n", path);
+        printf("kernel(%d, %d)\n", blocks_num, threads_num);
         printf("test failed\n");
     }
     free(test_result);
