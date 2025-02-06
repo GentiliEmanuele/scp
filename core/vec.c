@@ -25,7 +25,6 @@ inline int d_veceq(double *u, double *v, int n, double eps) {
     for (int i = 0; i < n; i++) {
         if (fabs(u[i] - v[i]) > eps) {
             ++count;
-            return 0;
         }
     }
     if (count)
