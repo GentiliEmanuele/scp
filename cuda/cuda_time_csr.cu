@@ -70,7 +70,7 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
         csr_cleanup(&sm);
         return 1;
     }
-    float *samples = malloc(runs_num * sizeof(float));
+    float *samples = (float*) malloc(runs_num * sizeof(float));
     float sum = 0.0;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);

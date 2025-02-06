@@ -73,7 +73,7 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
         cudaFree(d_v);
         return 1;
     }
-    float *samples = malloc(runs_num * sizeof(float));
+    float *samples = (float*) malloc(runs_num * sizeof(float));
     float sum = 0.0;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
