@@ -21,15 +21,17 @@ inline double *d_random(int n) {
 }
 
 inline int d_veceq(double *u, double *v, int n, double eps) {
-    int count = 0;
+    double s = 0.0;
     for (int i = 0; i < n; i++) {
-        if (fabs(u[i] - v[i]) > eps) {
-            ++count;
+        double d = fabs(u[i] - v[i]);
+        if (d > eps) {
+            s += d;
         }
     }
-    if (count)
-        printf("#errors=%d\n", count);
-    return count == 0 ? 1 : 0;
+    s /= n;
+    if (s > 0.0)
+        printf("error=%f\n", s);
+    return s > 0.0 ? 0 : 1;
 }
 
 int read_vector(double *vector, int n, const char *path) {
