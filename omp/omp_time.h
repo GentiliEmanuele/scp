@@ -4,6 +4,7 @@
 typedef struct time_measurement {
     double mean_time;
     double flops;
+    double std_dev;
     int num_threads;
     int num_runs;
 } time_measurement_t;

@@ -60,3 +60,11 @@ float std_dev(float *samples, float avg, int n) {
     }
     return dev / n;
 }
+
+double std_devl(double *samples, double avg, int n) {
+    double dev = 0.0;
+    for (int i = 0; i < n; i++) {
+        dev += (samples[i] - avg) * (samples[i] - avg);
+    }
+    return dev / n;
+}

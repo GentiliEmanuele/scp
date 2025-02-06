@@ -74,6 +74,16 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
         return 1;
     }
     float *samples = (float*) malloc(runs_num * sizeof(float));
+    if (!samples) {
+        printf("out of memory\n");
+        cudaFree(d_data);
+    	cudaFree(d_col_index);
+    	cudaFree(d_maxnzr);
+    	hll_cleanup(&sm);
+    	cudaFree(d_result);
+        cudaFree(d_v);
+        return 1;
+    }
     float sum = 0.0;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -112,5 +122,6 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
     cudaFree(d_v);
     free(v);
     hll_cleanup(&sm);
+    free(samples);
     return 0;
 }

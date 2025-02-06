@@ -71,6 +71,16 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
         return 1;
     }
     float *samples = (float*) malloc(runs_num * sizeof(float));
+    if (!samples) {
+        printf("out of memory\n");
+        cudaFree(d_data);
+    	cudaFree(d_col_index);
+    	cudaFree(d_row_pointer);
+    	cudaFree(d_result);
+        cudaFree(d_v);
+        csr_cleanup(&sm);
+        return 1;
+    }
     float sum = 0.0;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -113,6 +123,7 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
     cudaFree(d_v);
     csr_cleanup(&sm);
     free(v);
+    free(samples);
     return 0;
 }
 

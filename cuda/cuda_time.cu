@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
         fclose(off);
         return -1;
     }
-    fprintf(off, "matrix,time,flops\n");
+    fprintf(off, "matrix,time,flops,std_dev\n");
     INIT_TIME_INFO(ti);
     char line[1024];
     while (fgets(line, 1024, iff) != NULL) {
