@@ -52,3 +52,11 @@ void print_vec(double *v, int n) {
         printf("%d %f\n", i, v[i]);
     }
 }
+
+float std_dev(float *samples, float avg, int n) {
+    float dev = 0.0;
+    for (int i = 0; i < n; i++) {
+        dev += (samples[i] - avg) * (samples[i] - avg);
+    }
+    return dev / n;
+}

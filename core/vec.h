@@ -22,6 +22,8 @@ int read_vector(double *vector, int n, const char *path);
 
 void print_vec(double *v, int n);
 
+float std_dev(float *samples, float avg, int n);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
