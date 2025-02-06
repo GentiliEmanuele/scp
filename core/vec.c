@@ -21,13 +21,16 @@ inline double *d_random(int n) {
 }
 
 inline int d_veceq(double *u, double *v, int n, double eps) {
+    int count = 0;
     for (int i = 0; i < n; i++) {
         if (fabs(u[i] - v[i]) > eps) {
-            printf("%d: %f != %f\n", i, u[i], v[i]);
+            ++count;
             return 0;
         }
     }
-    return 1;
+    if (count)
+        printf("#errors=%d\n", count);
+    return count == 0 ? 1 : 0;
 }
 
 int read_vector(double *vector, int n, const char *path) {
