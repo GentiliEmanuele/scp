@@ -13,13 +13,6 @@ struct time_info {
 
 #define INIT_TIME_INFO(name) struct time_info name {.dev = 0, .millis = 0, .flops = 0};
 
-float std_dev(float *samples, float avg, int n) {
-    float dev = 0.0;
-    for (int i = 0; i < n; i++) {
-        dev += (samples[i] - avg) * (samples[i] - avg);
-    }
-    return dev / n;
-}
 int csr_time(const char *path, int runs_num, struct time_info *ti);
 int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti);
 
