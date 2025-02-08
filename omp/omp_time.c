@@ -47,10 +47,12 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
             printf("warning: couldn't complete sparse matrix-vector product of run %d\n", i);
         }
         clock_t end = clock();
-        sum += (end - start) / (double)CLOCKS_PER_SEC;  
+        double t = (end - start) / (double)CLOCKS_PER_SEC;
+        samples[i] = t;
+        sum += t;  
     }
     time_measurement->mean_time = sum / num_runs;
-    time_measurement->flops = (2 * mm.nz) / (double)time_measurement->mean_time;
+    time_measurement->flops = (2 * mm.nz) / time_measurement->mean_time;
     time_measurement->std_dev = std_devl(samples, time_measurement->mean_time, num_runs);
     time_measurement->num_threads = num_threads;
     time_measurement->num_runs = num_runs;
@@ -104,7 +106,7 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
         sum += t;
     }
     time_measurement->mean_time = sum / num_runs;
-    time_measurement->flops = (2 * mm.nz) / (double)time_measurement->mean_time;
+    time_measurement->flops = (2 * mm.nz) / time_measurement->mean_time;
     time_measurement->std_dev = std_devl(samples, time_measurement->mean_time, num_runs);
     time_measurement->num_threads = num_threads;
     time_measurement->num_runs = num_runs;

@@ -5,5 +5,5 @@ fi
 for i in $(seq 1 $2);
 do
     echo "iteration number: $i"
-    ./build/omp_time_hll.exe "$1" 100 $i 32 "$3/$2_$i"
+    ./build/omp_time_hll.exe "$1" 100 $i 32 "$3/hll_$i"
 done

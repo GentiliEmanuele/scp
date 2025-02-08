@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <stdio.h>
 #include "omp_test.h"
 

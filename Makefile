@@ -28,6 +28,12 @@ footprint:
 	mkdir -p build
 	gcc -g info/mkinfo.c core/utils.c core/mmio.c core/hll.c core/csr.c -o build/mkinfo.exe -Icore
 
+omp_profile_csr:
+	mkdir -p build
+	scorep gcc -g core/*.c omp/spmv_*.c omp/omp_profile_csr.c -o build/omp_profile_csr.exe -fopenmp -lm -Icore -Iomp
+	scalasca -analyze build/omp_profile_csr.exe data/Cube_Coup_dt0.mtx 24
+	scalasca -examine scorep_*
+
 clean:
 	rm -rf build/
 
