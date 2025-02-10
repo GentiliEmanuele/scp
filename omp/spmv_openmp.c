@@ -9,7 +9,7 @@ int spmv_csr_par(double *res, struct csr *csr, double *v, int n) {
         printf("matrix and vector must have the same number of columns\n");
         return 1;
     }
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(static)
     for (int i = 0; i < csr->num_rows; ++i) {
         double sum = 0.0;
         #pragma omp simd reduction(+:sum)

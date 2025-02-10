@@ -18,6 +18,6 @@ do
     if [ "$2" == "csr" ]; then
         ./build/omp_time_"$2".exe "$1" $i 100 "$4/$2_$i"
     else
-        ./build/omp_time_"$2".exe "$1" $i $3 100 "$4/$2_$i"
+        ./build/omp_time_"$2".exe "$1" $3 $i 100 "$4/$2_$i"
     fi
 done
