@@ -36,7 +36,7 @@ int spmv_hll_par(double *res, struct hll *hll, double *v, int n) {
     }
 
     int rows = num_of_rows(hll, 0);
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(static)
     for (int h = 0; h < hll->hacks_num; ++h) {
         for (int r = 0; r < num_of_rows(hll, h); ++r) {
             double sum = 0.0;
