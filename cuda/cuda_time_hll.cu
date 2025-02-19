@@ -84,6 +84,8 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
         cudaFree(d_v);
         return 1;
     }
+    float min = 1e18;
+    float max = -1;
     float sum = 0.0;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -109,12 +111,20 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
         float m = 0.0;
         cudaEventElapsedTime(&m, start, stop);
         samples[i] = m;
+        if (m > max) {
+            max = m;
+        }
+        if (m < min) {
+            min = m;
+        }
         sum += m;
     }
     ti->millis = sum / runs_num;
     ti->millis = sum / runs_num;   
     ti->dev = std_dev(samples, ti->millis, runs_num);
     ti->flops = (2 * nz) / ti->millis;
+    ti->min = min;
+    ti->max = max;
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_maxnzr);

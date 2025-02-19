@@ -40,6 +40,8 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
         mtx_cleanup(&mm);
         return 1;
     }
+    double max = -1;
+    double min = 1e10;
     double sum = 0;
     for (int i = 0; i < num_runs; i++) {
         double start = omp_get_wtime();
@@ -48,6 +50,12 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
         }
         double end = omp_get_wtime();
         double t = end - start;
+        if (t < min) {
+            min = t;
+        }
+        if (t > max) {
+            max = t;
+        }
         samples[i] = t;
         sum += t;  
     }
@@ -56,6 +64,8 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
     time_measurement->std_dev = std_devl(samples, time_measurement->mean_time, num_runs);
     time_measurement->num_threads = num_threads;
     time_measurement->num_runs = num_runs;
+    time_measurement->min = min;
+    time_measurement->max = max;
     csr_cleanup(&sm);
     mtx_cleanup(&mm);
     free(samples);
@@ -94,6 +104,8 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
         hll_cleanup(&sm);
         return 1;
     }
+    double min = 1e10;
+    double max = -1;
     double sum = 0;
     for (int i = 0; i < num_runs; i++) {
         double start = omp_get_wtime();
@@ -102,6 +114,12 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
         }
         double end = omp_get_wtime();
         double t = end - start;
+        if (t < min) {
+            min = t;
+        }
+        if (t > max) {
+            max = t;
+        }
         samples[i] = t;
         sum += t;
     }
@@ -110,6 +128,8 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     time_measurement->std_dev = std_devl(samples, time_measurement->mean_time, num_runs);
     time_measurement->num_threads = num_threads;
     time_measurement->num_runs = num_runs;
+    time_measurement->max = max;
+    time_measurement->min = min;
     mtx_cleanup(&mm);
     hll_cleanup(&sm);
     free(samples);
@@ -141,7 +161,7 @@ void read_and_measure_csr(char *path, int num_runs, int num_thread, char *out_pa
         printf("cannot open file %s\n", path);
         return;   
     }
-    fprintf(results, "File,FLOPS,mean_time [s],std_dev,num_threads,num_runs\n");
+    fprintf(results, "File,FLOPS,mean_time [s],std_dev,min,max,num_threads,num_runs\n");
     while ((read = getline(&line, &len, f)) != -1) {
         printf("Get time for the matrix %s", line);
         size_t last_idx = strlen(line) - 1;
@@ -149,11 +169,13 @@ void read_and_measure_csr(char *path, int num_runs, int num_thread, char *out_pa
             line[last_idx] = '\0';
         }
         omp_time_csr(line, num_runs, num_thread, &time_measurement);
-        fprintf(results, "%s,%f,%f,%f,%d,%d\n",
+        fprintf(results, "%s,%f,%f,%f,%f,%f,%d,%d\n",
             line,
             time_measurement.flops,
             time_measurement.mean_time,
             time_measurement.std_dev,
+            time_measurement.min,
+            time_measurement.max,
             time_measurement.num_threads,
             time_measurement.num_runs);
     }
@@ -190,7 +212,7 @@ void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_threa
         printf("cannot open file %s\n", path);
         return;   
     }
-    fprintf(results, "File,FLOPS,mean_time [s],std_dev,num_threads,num_runs\n");
+    fprintf(results, "File,FLOPS,mean_time [s],std_dev,min,max,num_threads,num_runs\n");
     while ((read = getline(&line, &len, f)) != -1) {
         printf("Get time for the matrix %s", line);
         size_t last_idx = strlen(line) - 1;
@@ -198,11 +220,13 @@ void read_and_measure_hll(char *path, int hack_size, int num_runs, int num_threa
             line[last_idx] = '\0';
         }
         omp_time_hll(line, hack_size, num_runs, num_thread, &time_measurement);
-        fprintf(results, "%s,%f,%f,%f,%d,%d\n",
+        fprintf(results, "%s,%f,%f,%f,%f,%f,%d,%d\n",
             line,
             time_measurement.flops,
             time_measurement.mean_time,
             time_measurement.std_dev,
+            time_measurement.min,
+            time_measurement.max,
             time_measurement.num_threads,
             time_measurement.num_runs);
     }

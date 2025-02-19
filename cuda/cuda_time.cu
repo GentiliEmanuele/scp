@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
             ir = hll_time(line, runs_num, hack_size, &ti);
         }
         if (!ir) {
-            fprintf(off, "\"%s\",%f,%f,%f\n", line, ti.millis, ti.flops, ti.dev);
+            fprintf(off, "\"%s\",%f,%f,%f,%f,%f\n", line, ti.millis, ti.flops, ti.dev, ti.min, ti.max);
         }
     }
     fclose(iff);
