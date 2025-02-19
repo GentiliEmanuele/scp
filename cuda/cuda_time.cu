@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
         fclose(off);
         return -1;
     }
-    fprintf(off, "matrix,time,flops,std_dev\n");
+    fprintf(off, "matrix,time,flops,std_dev,min,max\n");
     INIT_TIME_INFO(ti);
     char line[1024];
     while (fgets(line, 1024, iff) != NULL) {
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
             ir = hll_time(line, runs_num, hack_size, &ti);
         }
         if (!ir) {
-            fprintf(off, "\"%s\",%f,%f,%f\n", line, ti.millis, ti.flops, ti.dev);
+            fprintf(off, "\"%s\",%f,%f,%f,%f,%f\n", line, ti.millis, ti.flops, ti.dev, ti.min, ti.max);
         }
     }
     fclose(iff);

@@ -81,6 +81,8 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
         csr_cleanup(&sm);
         return 1;
     }
+    float min = 1e18;
+    float max = -1;
     float sum = 0.0;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -106,6 +108,12 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
         float m = 0.0;
         cudaEventElapsedTime(&m, start, stop);
         samples[i] = m;
+        if (m > max) {
+            max = m;
+        }
+        if (m < min) {
+            min = m;
+        }
         sum += m;
     }
     double *result = d_zeros(sm.num_rows);
@@ -113,6 +121,8 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
     }
+    ti->min = min;
+    ti->max = max;
     ti->millis = sum / runs_num;    
     ti->dev = std_dev(samples, ti->millis, runs_num);
     ti->flops = (2 * nz) / ti->millis;

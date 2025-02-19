@@ -42,6 +42,7 @@ static int avg_nzr(struct MatrixMarket *mm, double *avg_nzr, int *max_nzr) {
     *avg_nzr = avg / mm->num_rows;
     *max_nzr = max;
     free(nzr);
+    return 0;
 }
 
 int main(int argc, char *argv[])
