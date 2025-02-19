@@ -9,7 +9,7 @@ struct time_info {
     float dev;
     float millis;
     float flops;
-    float min:
+    float min;
     float max;
 };
 
