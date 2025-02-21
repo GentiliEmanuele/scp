@@ -93,6 +93,9 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
         cudaEventRecord(start);
         cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
         cudaEventRecord(stop);
+        cudaEventSynchronize(stop);
+        float m = 0.0;
+        cudaEventElapsedTime(&m, start, stop);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
@@ -104,9 +107,6 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
             csr_cleanup(&sm);
             return 1;
         }
-        cudaEventSynchronize(stop);
-        float m = 0.0;
-        cudaEventElapsedTime(&m, start, stop);
         samples[i] = m;
         if (m > max) {
             max = m;
