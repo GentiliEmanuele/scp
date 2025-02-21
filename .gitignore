@@ -7,3 +7,4 @@ main.c
 test/**.mtx.*
 test/output/*
 cuda/build
+notebooks
