@@ -20,10 +20,6 @@ cuda:
 	cd build/cuda
 	make
 
-omp_pytest:
-	mkdir -p build
-	gcc -g core/*.c omp/spmv_*.c omp/omp_main_pytest.c -o build/openmp_pytest.exe -fopenmp -lm -Icore -Iomp
-
 footprint:
 	mkdir -p build
 	gcc -g info/mkinfo.c core/utils.c core/mmio.c core/hll.c core/csr.c -o build/mkinfo.exe -Icore
