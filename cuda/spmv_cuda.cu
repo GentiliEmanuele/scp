@@ -27,3 +27,22 @@ __global__ void cuda_spmv_csr(double *res, int *row_pointer, double *data, int *
         res[i] = sum;
     }
 }
+
+__global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
+    int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
+    int warp_id = thread_id / 32;
+    int lane = thread_id % 32;
+    int row = warp_id;
+    double sum = 0.0;
+    if (row < n_rows) {
+        int row_start = row_pointer[row];
+        int row_end = row_pointer[row + 1];
+        for (int element = row_start + lane; element < row_end; element += 32) {
+            sum += data[element] * x[col_index[element]];
+        }
+    }
+    sum = warp_reduce(sum);
+    if (lane == 0 && row < n_rows) {
+        res[row] = sum;
+    }
+}

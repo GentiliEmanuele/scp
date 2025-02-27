@@ -63,7 +63,7 @@ int csr_test(const char *path) {
     }
     int threads_num = 1024;
     int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
-    cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    cuda_spmv_csr_v2<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
