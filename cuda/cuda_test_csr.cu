@@ -8,6 +8,7 @@
 #include <cuda_runtime.h>
 #include <math.h>
 
+
 int csr_test(const char *path) {
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
@@ -62,7 +63,7 @@ int csr_test(const char *path) {
         return 1;
     }
     int threads_num = 1024;
-    int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
+    int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
     cuda_spmv_csr_v2<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
@@ -85,8 +86,10 @@ int csr_test(const char *path) {
         printf("spmv_csr_par failed\n");
     } else if (!d_veceq(result, test_result, sm.num_rows, 1e-6)) {
         printf("matrix %s\n", path);
-        printf("kernel(%d, %d)\n", blocks_num, threads_num);
+        // printf("kernel(%d, %d)\n", blocks_num, threads_num);
         printf("test failed\n");
+    } else {
+	printf("Test passed for %s \n", path);
     }
     cudaFree(d_data);
     cudaFree(d_col_index);

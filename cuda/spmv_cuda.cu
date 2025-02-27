@@ -1,4 +1,5 @@
 #include "spmv_cuda.h"
+#include <stdio.h>
 
 #define num_of_rows(h, hack_size, hacks_num, num_rows) ((hacks_num - 1 == h && num_rows % hack_size) ? num_rows % hack_size : hack_size)
 
@@ -28,21 +29,24 @@ __global__ void cuda_spmv_csr(double *res, int *row_pointer, double *data, int *
     }
 }
 
+
 __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
     int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
     int warp_id = thread_id / 32;
     int lane = thread_id % 32;
     int row = warp_id;
     double sum = 0.0;
-    if (row < n_rows) {
+    if (row < n) {
+	//printf("tid=%d wid=%d l=%d \n", thread_id, warp_id, lane);
         int row_start = row_pointer[row];
         int row_end = row_pointer[row + 1];
         for (int element = row_start + lane; element < row_end; element += 32) {
-            sum += data[element] * x[col_index[element]];
+            sum += data[element] * v[col_index[element]];
         }
-    }
-    sum = warp_reduce(sum);
-    if (lane == 0 && row < n_rows) {
-        res[row] = sum;
+	for (int offset = 16; offset > 0; offset /= 2) {
+		sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
+    	}
+	if (lane == 0) res[row] = sum;
     }
 }
+
