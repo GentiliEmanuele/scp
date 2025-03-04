@@ -91,6 +91,10 @@ int hll_test(char *path, int hack_size) {
         printf("kernel(%d, %d)\n", blocks_num, threads_num);
         printf("test failed\n");
     }
+    printf("My result \n");
+    print_vec(result, 10);
+    printf("Test result \n ");
+    print_vec(test_result, 10);
     free(test_result);
     free(result);
     cudaFree(d_data);
