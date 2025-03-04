@@ -63,7 +63,7 @@ int hll_test(char *path, int hack_size) {
     }
     int threads_num = 1024;
     int blocks_num = (int)ceil(sm.hacks_num / (double)threads_num);
-    cuda_spmv_hll<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+    cuda_spmv_hll_v2<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
