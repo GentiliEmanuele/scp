@@ -30,7 +30,7 @@ __global__ void cuda_spmv_hll_v2(double *res, int hack_size, int hacks_num, doub
         int row_start = row * max_nzr[hack] + offsets[hack];
         int row_end = (row + 1) * max_nzr[hack] + offsets[hack];
         if (get_hack(row + 1, n, hacks_num) != hack) {
-            row_end = offsets[get_hack(row + 1, n, hack_num)]
+            row_end = offsets[get_hack(row + 1, n, hacks_num)];
         }
         for (int element = row_start + lane; element < row_end; element += 32) {
             sum += data[element] * v[col_index[element]];
