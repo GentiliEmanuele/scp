@@ -28,9 +28,8 @@ __global__ void cuda_spmv_hll_v2(double *res, int hack_size, int hacks_num, doub
         int row_start = max_nzr[row];
         int row_end = max_nzr[row + 1];
         for (int element = row_start + lane; element < row_end; element += 32) {
-            int k = offsets[thread_id] + lane * max_nzr + element;
-            sum += data[k] * v[col_index[k]];
-        }
+            sum += data[element] * v[col_index[element]];
+        } 
         for (int offset = 16; offset > 0; offset /= 2) {
             sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
         }
@@ -64,7 +63,7 @@ __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, in
         }
         for (int offset = 16; offset > 0; offset /= 2) {
             sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
-            }
+        }
         if (lane == 0) res[row] = sum;
     }
 }
