@@ -25,14 +25,14 @@ int hll_test(char *path, int hack_size) {
     int *d_offsets;
     cudaError_t err = cuda_hll_init(&sm, &d_data, &d_col_index, &d_maxnzr, &d_offsets);
     if (err != cudaSuccess) {
-        printf("init error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         hll_cleanup(&sm);
         return -1;
     }
     double *d_result;
     err = cudaMalloc(&d_result, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
-        printf("malloc error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
     	cudaFree(d_maxnzr);
@@ -42,7 +42,7 @@ int hll_test(char *path, int hack_size) {
     double *d_v;
     err = cudaMalloc(&d_v, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
-        printf("malloc error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
     	cudaFree(d_maxnzr);
@@ -52,7 +52,7 @@ int hll_test(char *path, int hack_size) {
     }
     err = cudaMemcpy(d_v, v, sm.num_rows * sizeof(double), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
-        printf("cp error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
     	cudaFree(d_col_index);
     	cudaFree(d_maxnzr);
@@ -66,7 +66,7 @@ int hll_test(char *path, int hack_size) {
     cuda_spmv_hll_v2<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
-        printf("exec error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
         cudaFree(d_col_index);
         cudaFree(d_maxnzr);
@@ -81,7 +81,7 @@ int hll_test(char *path, int hack_size) {
     }
     err = cudaMemcpy(result, d_result, sm.num_rows * sizeof(double), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) {
-        printf("cp result error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+        printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
     }
     double *test_result = d_zeros(sm.num_rows);
     if (spmv_hll_par(test_result, &sm, v, sm.num_rows)) {

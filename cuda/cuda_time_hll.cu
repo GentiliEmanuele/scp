@@ -91,7 +91,7 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     int threads_num = 1024;
-    int blocks_num = (int)ceil(sm.hacks_num / (double)threads_num);
+    int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
     for (int i = 0; i < runs_num; ++i) {
         cudaEventRecord(start);
         cuda_spmv_hll_v2<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
