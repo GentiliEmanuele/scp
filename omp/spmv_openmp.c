@@ -50,3 +50,19 @@ int spmv_hll_par(double *res, struct hll *hll, double *v, int n) {
     }
     return 0;
 }
+
+int spmv_hll_par_v2(double *res, struct hll *hll, double *v, int n) {
+    int hack_size = hll->hack_size;
+    #pragma omp parallel for schedule(static)
+    for (int i = 0; i < hll->num_rows; ++i) {
+        int hack = i / hack_size;
+        int row_start = (i % hack_size) * hll->max_nzr[hack] + hll->offsets[hack];
+        int row_end = row_start + hll->max_nzr[hack];
+        double sum = 0.0;
+        #pragma omp simd reduction(+:sum)
+        for (int j = row_start; j < row_end; ++j) {
+            sum += hll->data[j] * v[hll->col_index[j]];
+        }
+        res[i] = sum;
+    }
+}
