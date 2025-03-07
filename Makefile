@@ -8,7 +8,7 @@ omp_time_csr:
 
 omp_test_hll:
 	mkdir -p build
-	gcc -g core/*.c omp/spmv_*.c omp/omp_test.c omp/omp_main_test_csr.c -o build/omp_test_hll.exe -fopenmp -lm -Icore -Iomp
+	gcc -g core/*.c omp/spmv_*.c omp/omp_test.c omp/omp_main_test_hll.c -o build/omp_test_hll.exe -fopenmp -lm -Icore -Iomp
 
 omp_time_hll:
 	mkdir -p build

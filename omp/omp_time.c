@@ -109,7 +109,7 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     double sum = 0;
     for (int i = 0; i < num_runs; i++) {
         double start = omp_get_wtime();
-        if (spmv_hll_par(r, &sm, v, n)) {
+        if (spmv_hll_par_v2(r, &sm, v, n)) {
             printf("warning: couldn't complete sparse matrix-vector product of run %d\n", i);
         }
         double end = omp_get_wtime();

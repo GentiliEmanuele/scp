@@ -86,7 +86,7 @@ int test_hll(const char *file, int hack_size) {
     char path[1024];
     sprintf(path, "%s.res", file);
     write_vector(v, n, path);
-    if (spmv_hll_par(p, &sm, v, n)) {
+    if (spmv_hll_par_v2(p, &sm, v, n)) {
         csr_cleanup(&csr);
         mtx_cleanup(&mm);
         hll_cleanup(&sm);
