@@ -26,7 +26,7 @@ int test_csr(const char *file) {
     double *v = d_random(n);
     double *p = d_zeros(m);
     double *s = d_zeros(m);
-    if (spmv_csr_par(p, &sm, v, n)) {
+    if (spmv_csr_par(p, &sm, v, n, NULL)) {
         mtx_cleanup(&mm);
         csr_cleanup(&sm);
         return 1;
@@ -86,7 +86,7 @@ int test_hll(const char *file, int hack_size) {
     char path[1024];
     sprintf(path, "%s.res", file);
     write_vector(v, n, path);
-    if (spmv_hll_par_v2(p, &sm, v, n)) {
+    if (spmv_hll_par_v2(p, &sm, v, n, NULL)) {
         csr_cleanup(&csr);
         mtx_cleanup(&mm);
         hll_cleanup(&sm);

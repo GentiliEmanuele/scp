@@ -43,21 +43,19 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
     double max = -1;
     double min = 1e10;
     double sum = 0;
+    double execution_time;
     for (int i = 0; i < num_runs; i++) {
-        double start = omp_get_wtime();
-        if (spmv_csr_par(r, &sm, v, n)) {
+        if (spmv_csr_par(r, &sm, v, n, &execution_time)) {
             printf("warning: couldn't complete sparse matrix-vector product of run %d\n", i);
         }
-        double end = omp_get_wtime();
-        double t = end - start;
-        if (t < min) {
-            min = t;
+        if (execution_time < min) {
+            min = execution_time;
         }
-        if (t > max) {
-            max = t;
+        if (execution_time > max) {
+            max = execution_time;
         }
-        samples[i] = t;
-        sum += t;  
+        samples[i] = execution_time;
+        sum += execution_time;  
     }
     time_measurement->mean_time = sum / num_runs;
     time_measurement->flops = (2 * mm.nz) / time_measurement->mean_time;
@@ -107,21 +105,19 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     double min = 1e10;
     double max = -1;
     double sum = 0;
+    double execution_time;
     for (int i = 0; i < num_runs; i++) {
-        double start = omp_get_wtime();
-        if (spmv_hll_par_v2(r, &sm, v, n)) {
+        if (spmv_hll_par_v2(r, &sm, v, n, &execution_time)) {
             printf("warning: couldn't complete sparse matrix-vector product of run %d\n", i);
         }
-        double end = omp_get_wtime();
-        double t = end - start;
-        if (t < min) {
-            min = t;
+        if (execution_time < min) {
+            min = execution_time;
         }
-        if (t > max) {
-            max = t;
+        if (execution_time > max) {
+            max = execution_time;
         }
-        samples[i] = t;
-        sum += t;
+        samples[i] = execution_time;
+        sum += execution_time;
     }
     time_measurement->mean_time = sum / num_runs;
     time_measurement->flops = (2 * mm.nz) / time_measurement->mean_time;
