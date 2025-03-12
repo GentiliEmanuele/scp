@@ -26,6 +26,24 @@ int spmv_csr_par(double *res, struct csr *csr, double *v, int n, double *executi
     return 0;
 }
 
+int spmv_csr_par_v2(double *res, struct csr *csr, double *v, int n, double *execution_time) {
+    int current = 0;
+    int i = 0;
+    double start = omp_get_wtime();
+    #pragma omp parallel shared(current) private(i)
+    while(1) {
+        double sum = 0.0;
+        i = current;
+        if (i < n) {
+            __sync_fetch_and_add(&current, 1);
+            for (int j = csr->row_pointer[i]; j < csr->row_pointer[i+1]; ++j) {
+                sum += csr->data[j] * v[csr->col_index[j]];
+            }
+            res[i] = sum;
+        } else break;
+    }
+}
+
 // Calculates number of rows of hack h
 static inline int num_of_rows(struct hll *hll, int h) {
     if (hll->hacks_num - 1 == h && hll->num_rows % hll->hack_size) {
