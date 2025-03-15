@@ -9,10 +9,10 @@ extern "C"
 #include "csr.h"
 #include "hll.h"
 
-int spmv_csr_par(double *res, struct csr *csr, double *v, int n, double *execution_time);
-int spmv_csr_par_v2(double *res, struct csr *csr, double *v, int n, double *execution_time);
-int spmv_hll_par(double *res, struct hll *hll, double *v, int n, double *exectuion_time);
-int spmv_hll_par_v2(double *res, struct hll *hll, double *v, int n, double *execution_time);
+int spmv_csr_par(double *res, struct csr *csr, double *v, int n);
+int spmv_csr_par_v2(double *res, struct csr *csr, double *v, int n);
+int spmv_hll_par(double *res, struct hll *hll, double *v, int n);
+int spmv_hll_par_v2(double *res, struct hll *hll, double *v, int n);
 
 #ifdef __cplusplus
 } // extern "C"

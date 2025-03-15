@@ -31,7 +31,7 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
     double *r = d_zeros(m);
     srand(42);
     double *v = d_random(n);
-    
+
     omp_set_num_threads(num_threads);
     double *samples = malloc(num_runs * sizeof(double));
     if (!samples) {
@@ -43,11 +43,14 @@ int omp_time_csr(const char *file, int num_runs, int num_threads, time_measureme
     double max = -1;
     double min = 1e10;
     double sum = 0;
-    double execution_time;
+    double start, end, execution_time;
     for (int i = 0; i < num_runs; i++) {
-        if (spmv_csr_par(r, &sm, v, n, &execution_time)) {
+        start = omp_get_wtime();
+        if (spmv_csr_par(r, &sm, v, n)) {
             printf("warning: couldn't complete sparse matrix-vector product of run %d\n", i);
         }
+        end = omp_get_wtime();
+        execution_time = end - start;
         if (execution_time < min) {
             min = execution_time;
         }
@@ -105,15 +108,18 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     double min = 1e10;
     double max = -1;
     double sum = 0;
-    double execution_time;
+    double start, end, execution_time;
     for (int i = 0; i < num_runs; i++) {
+        start = omp_get_wtime();
         #ifdef omp_hll_v2 
-        if (spmv_hll_par_v2(r, &sm, v, n, &execution_time)) {
+        if (spmv_hll_par_v2(r, &sm, v, n)) {
         #else
-        if (spmv_hll_par(r, &sm, v, n, &execution_time)) {
+        if (spmv_hll_par(r, &sm, v, n)) {
         #endif
             printf("warning: couldn't complete sparse matrix-vector product of run %d\n", i);
         }
+        end = omp_get_wtime();
+        execution_time = end - start;
         if (execution_time < min) {
             min = execution_time;
         }
