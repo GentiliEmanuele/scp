@@ -8,7 +8,12 @@
 #include <math.h>
 #include <cuda_runtime.h>
 
-int csr_time(const char *path, int runs_num, struct time_info *ti) {
+#define CSR2 4
+
+int csr_time(const char *path, int runs_num, struct time_info *ti, int type) {
+    if (type == CSR2) {
+        #define cuda_opt_csr
+    }
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;
@@ -91,7 +96,11 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
     int blocks_num = (int)ceil(sm.num_rows *32 / (double)threads_num);
     for (int i = 0; i < runs_num; i++) {
         cudaEventRecord(start);
+        #ifdef cuda_opt_csr
         cuda_spmv_csr_v2<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+        #else
+        cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+        #endif
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         float m = 0.0;

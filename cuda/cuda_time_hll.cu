@@ -9,8 +9,12 @@
 #include <math.h>
 
 #define pr_err(err) printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err))
+#define HLL2 3
 
-int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti) {
+int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti, int type) {
+    if (type == HLL2) {
+        #define cuda_opt_hll
+    }
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;
@@ -94,7 +98,11 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
     int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
     for (int i = 0; i < runs_num; ++i) {
         cudaEventRecord(start);
+        #ifdef cuda_opt_hll
         cuda_spmv_hll_v2<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+        #else 
+        cuda_spmv_hll<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+        #endif
         cudaEventRecord(stop);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
