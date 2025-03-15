@@ -90,7 +90,7 @@ int csr_test(const char *path, int type) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
     }
     double *test_result = d_zeros(sm.num_rows);
-    if (spmv_csr_par(test_result, &sm, v, sm.num_rows)) {
+    if (spmv_csr_par(test_result, &sm, v, sm.num_rows, NULL)) {
         printf("spmv_csr_par failed\n");
     } else if (!d_veceq(result, test_result, sm.num_rows, 1e-6)) {
         printf("matrix %s\n", path);

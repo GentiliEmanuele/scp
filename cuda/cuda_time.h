@@ -15,8 +15,8 @@ struct time_info {
 
 #define INIT_TIME_INFO(name) struct time_info name {.dev = 0, .millis = 0, .flops = 0, .min = 0, .max = 0};
 
-int csr_time(const char *path, int runs_num, struct time_info *ti);
-int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti);
+int csr_time(const char *path, int runs_num, struct time_info *ti, int type);
+int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti, int type);
 
 #ifdef __cplusplus
 }
