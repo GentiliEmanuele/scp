@@ -10,9 +10,17 @@ omp_test_hll:
 	mkdir -p build
 	gcc -g core/*.c omp/spmv_*.c omp/omp_test.c omp/omp_main_test_hll.c -o build/omp_test_hll.exe -fopenmp -lm -Icore -Iomp
 
+omp_test_opt_hll:
+	mkdir -p build
+	gcc -g -Domp_hll_v2 core/*.c omp/spmv_*.c omp/omp_test.c omp/omp_main_test_hll.c -o build/omp_test_hll.exe -fopenmp -lm -Icore -Iomp
+
 omp_time_hll:
 	mkdir -p build
 	gcc -O3 core/*.c omp/spmv_*.c omp/omp_time.c omp/omp_main_time_hll.c -o build/omp_time_hll.exe -fopenmp -lm -Icore -Iomp
+
+omp_time_opt_hll:
+	mkdir -p build
+	gcc -O3 -Domp_hll_v2 core/*.c omp/spmv_*.c omp/omp_time.c omp/omp_main_time_hll.c -o build/omp_time_hll.exe -fopenmp -lm -Icore -Iomp
 
 cuda:
 	mkdir -p build/cuda

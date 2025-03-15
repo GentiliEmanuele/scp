@@ -107,7 +107,11 @@ int omp_time_hll(const char *file, int hack_size, int num_runs, int num_threads,
     double sum = 0;
     double execution_time;
     for (int i = 0; i < num_runs; i++) {
+        #ifdef omp_hll_v2 
         if (spmv_hll_par_v2(r, &sm, v, n, &execution_time)) {
+        #else
+        if (spmv_hll_par(r, &sm, v, n, &execution_time)) {
+        #endif
             printf("warning: couldn't complete sparse matrix-vector product of run %d\n", i);
         }
         if (execution_time < min) {
