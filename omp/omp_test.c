@@ -41,8 +41,7 @@ int test_csr(const char *file) {
         csr_cleanup(&sm);
         printf("(csr) test failed for matrix: %s\n", file);
         return 1;
-    }
-    print_vec(p, 10);
+    } else printf("test passed for %s \n", file);
     mtx_cleanup(&mm);
     csr_cleanup(&sm);
     return 0;
@@ -108,7 +107,7 @@ int test_hll(const char *file, int hack_size) {
         mtx_cleanup(&mm);
         hll_cleanup(&sm);
         return 1;
-    }
+    } else printf("test passed for matrix %s \n", file);
     csr_cleanup(&csr);
     mtx_cleanup(&mm);
     hll_cleanup(&sm);
