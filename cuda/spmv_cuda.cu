@@ -74,7 +74,7 @@ __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, in
 __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
     int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
     int warp_id = thread_id / 32;
-    int lane = thread_id % 32;
+    int lane = thread_id & (32 - 1);
     int row = warp_id;
     extern __shared__ double vals[];
     if (row < n) {
@@ -84,12 +84,18 @@ __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, in
         for (int element = row_start + lane; element < row_end; element += 32) {
             vals[threadIdx.x] += data[element] * v[col_index[element]];
         }
+	 __syncthreads(); 
         if (lane < 16) vals[threadIdx.x] += vals[threadIdx.x + 16];
+	__syncthreads();
         if (lane < 8) vals[threadIdx.x] += vals[threadIdx.x + 8];
+	__syncthreads();
         if (lane < 4) vals[threadIdx.x] += vals[threadIdx.x + 4];
+	__syncthreads();
         if (lane < 2) vals[threadIdx.x] += vals[threadIdx.x + 2];
+	__syncthreads();
         if (lane < 1) vals[threadIdx.x] += vals[threadIdx.x + 1];
-        if (lane == 0) y[row] += vals[threadIdx.x];
+	__syncthreads();
+        if (lane == 0) res[row] = vals[threadIdx.x];
     }
 }
 

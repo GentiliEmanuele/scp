@@ -34,7 +34,7 @@ int csr_test(const char *path, int type) {
         return -1;
     }
     double *d_result;
-    err = cudaMallocManaged(&d_result, sm.num_rows * sizeof(double));
+    err = cudaMalloc(&d_result, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
@@ -44,7 +44,7 @@ int csr_test(const char *path, int type) {
         return 1;
     }
     double *d_v;
-    err = cudaMallocManaged(&d_v, sm.num_rows * sizeof(double));
+    err = cudaMalloc(&d_v, sm.num_rows * sizeof(double));
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
         cudaFree(d_data);
@@ -66,10 +66,11 @@ int csr_test(const char *path, int type) {
         csr_cleanup(&sm);
         return 1;
     }
-    int threads_num = 1024;
-    int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
+    int threads_num = 32;
+    int blocks_num = sm.num_rows;
+    int shared_mem_size = threads_num * sizeof(double);
     #ifdef cuda_opt_csr
-    cuda_spmv_csr_v2<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    cuda_spmv_csr_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     #else
     cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     #endif
