@@ -9,11 +9,9 @@
 #include <cuda_runtime.h>
 
 #define CSR2 4
+#define cuda_opt_csr
 
 int csr_time(const char *path, int runs_num, struct time_info *ti, int type) {
-    if (type == CSR2) {
-        #define cuda_opt_csr
-    }
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;
@@ -92,8 +90,8 @@ int csr_time(const char *path, int runs_num, struct time_info *ti, int type) {
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    int threads_num = 32;
-    int blocks_num = sm.num_rows;
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.num_rows / (double)32);
     int sh_mem_size = threads_num * sizeof(double);
     for (int i = 0; i < runs_num; i++) {
         cudaEventRecord(start);
