@@ -12,25 +12,19 @@
 #define NOTEST 0
 #define CSR    1
 #define HLL    2
-#define HLL2   3
-#define CSR2   4
 
 int parse_test_type(char *s) {
     if (!strcmp(s, "csr")) {
         return CSR;
     } else if (!strcmp(s, "hll")) {
         return HLL;
-    } else if (!strcmp(s, "hll2")) {
-        return HLL2;
-    } else if (!strcmp(s, "csr2")) {
-        return CSR2;
     } else return NOTEST;
 }
 
 int main(int argc, char *argv[]) {
     --argc;
     if (argc != 4 && argc != 5) {
-        printf("see usage: program output matrices_list runs_num [hll|csr|hll2|csr2] {hack_size}\n");
+        printf("see usage: program output matrices_list runs_num [hll|csr] {hack_size}\n");
         return -1;
     }
 
@@ -46,7 +40,7 @@ int main(int argc, char *argv[]) {
     }
 
     int hack_size = 0;
-    if (test_type == HLL || test_type == HLL2) {
+    if (test_type == HLL) {
         if (argc == 5) {
             hack_size = atoi(argv[5]);
             if (hack_size == 0) {
@@ -88,10 +82,10 @@ int main(int argc, char *argv[]) {
         ti.flops = 0.0;
         ti.millis = 0.0;
         int ir = 0;
-        if (test_type == CSR || test_type == CSR2) {
-            ir = csr_time(line, runs_num, &ti, test_type);
+        if (test_type == CSR) {
+            ir = csr_time(line, runs_num, &ti);
         } else if (test_type == HLL || test_type == HLL2) {
-            ir = hll_time(line, runs_num, hack_size, &ti, test_type);
+            ir = hll_time(line, runs_num, hack_size, &ti);
         }
         if (!ir) {
             fprintf(off, "\"%s\",%f,%f,%f,%f,%f\n", line, ti.millis, ti.flops, ti.dev, ti.min, ti.max);

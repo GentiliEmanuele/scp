@@ -14,7 +14,7 @@
 //#define csr_v4
 
 
-int csr_time(const char *path, int runs_num, struct time_info *ti, int type) {
+int csr_time(const char *path, int runs_num, struct time_info *ti) {
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;

@@ -13,7 +13,7 @@
 //#define csr_v3
 //#define csr_v4
 
-int csr_test(const char *path, int type) {
+int csr_test(const char *path) {
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;

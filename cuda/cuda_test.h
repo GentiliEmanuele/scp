@@ -5,8 +5,8 @@ extern "C"
 {
 #endif
 
-int csr_test(const char *path, int type);
-int hll_test(char *path, int hack_size, int type);
+int csr_test(const char *path);
+int hll_test(char *path, int hack_size);
 
 #ifdef __cplusplus
 }
