@@ -10,8 +10,8 @@
 
 #define pr_err(err) printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err))
 //#define hll_v0
-#define hll_v1
-//#define hll_v2
+//#define hll_v1
+#define hll_v2
 //#define hll_v3
 
 int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti) {

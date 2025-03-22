@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
         int ir = 0;
         if (test_type == CSR) {
             ir = csr_time(line, runs_num, &ti);
-        } else if (test_type == HLL || test_type == HLL2) {
+        } else if (test_type == HLL) {
             ir = hll_time(line, runs_num, hack_size, &ti);
         }
         if (!ir) {

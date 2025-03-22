@@ -8,14 +8,10 @@
 #include <cuda_runtime.h>
 
 //#define hll_v0
-#define hll_v1
-//#define hll_v2
+//#define hll_v1
+#define hll_v2
 //#define hll_v3
-else if (!strcmp(s, "hll2")) {
-    return HLL2;
-} else if (!strcmp(s, "csr2")) {
-    return CSR2;
-} 
+ 
 
 int hll_test(char *path, int hack_size) {
     struct MatrixMarket mm;
@@ -73,7 +69,6 @@ int hll_test(char *path, int hack_size) {
     }
     int threads_num = 1024;
     int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
-    int shared_mem_size = threads_num * sizeof(double);
     #ifdef hll_v0
     cuda_spmv_hll_v0<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
@@ -81,7 +76,7 @@ int hll_test(char *path, int hack_size) {
     cuda_spmv_hll_v1<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
     #ifdef hll_v2
-    printf("Test vers 2\n");
+    int shared_mem_size = threads_num * sizeof(double);
     cuda_spmv_hll_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
     #ifdef hll_v3
