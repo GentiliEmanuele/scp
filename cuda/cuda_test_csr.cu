@@ -8,13 +8,12 @@
 #include <cuda_runtime.h>
 #include <math.h>
 
-#define CSR2 4
-#define cuda_opt_csr
+//#define csr_v1
+#define csr_v2
+//#define csr_v3
+//#define csr_v4
 
 int csr_test(const char *path, int type) {
-    if (type == CSR2) {
-        #define cuda_opt_csr
-    }
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;
@@ -70,10 +69,20 @@ int csr_test(const char *path, int type) {
     int threads_num = 1024;
     int blocks_num = (int)ceil(sm.num_rows / (double)32);
     int shared_mem_size = threads_num * sizeof(double);
-    #ifdef cuda_opt_csr
+    #ifdef csr_v1
+    cuda_spmv_csr<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    #endif
+    #ifdef csr_v2
+    printf("Test version 2\n");
     cuda_spmv_csr_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
-    #else
-    cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    #endif
+    #ifdef csr_v3
+    printf("Test version 3\n");
+    cuda_spmv_csr_v3<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    #endif
+    #ifdef csr_v4
+    printf("Test version 4\n");
+    cuda_spmv_csr_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     #endif
     err = cudaGetLastError();
     if (err != cudaSuccess) {

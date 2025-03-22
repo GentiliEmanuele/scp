@@ -8,8 +8,11 @@
 #include <math.h>
 #include <cuda_runtime.h>
 
-#define CSR2 4
-#define cuda_opt_csr
+//#define csr_v1
+#define csr_v2
+//#define csr_v3
+//#define csr_v4
+
 
 int csr_time(const char *path, int runs_num, struct time_info *ti, int type) {
     struct MatrixMarket mm;
@@ -92,14 +95,21 @@ int csr_time(const char *path, int runs_num, struct time_info *ti, int type) {
     cudaEventCreate(&stop);
     int threads_num = 1024;
     int blocks_num = (int)ceil(sm.num_rows / (double)32);
-    int sh_mem_size = threads_num * sizeof(double);
+    int shared_mem_size = threads_num * sizeof(double);
     for (int i = 0; i < runs_num; i++) {
         cudaEventRecord(start);
-        #ifdef cuda_opt_csr
-        cuda_spmv_csr_v2<<<blocks_num, threads_num, sh_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
-        #else
-        cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
-        #endif
+	#ifdef csr_v1
+    	cuda_spmv_csr<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    	#endif
+    	#ifdef csr_v2
+    	cuda_spmv_csr_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    	#endif
+    	#ifdef csr_v3
+    	cuda_spmv_csr_v3<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    	#endif
+   	#ifdef csr_v4
+	cuda_spmv_csr_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+   	#endif
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         float m = 0.0;

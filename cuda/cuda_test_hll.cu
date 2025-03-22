@@ -7,13 +7,12 @@
 #include "vec.h"
 #include <cuda_runtime.h>
 
-#define HLL2 3
+//#define hll_v1
+#define hll_v2
+//#define hll_v3
 
 
 int hll_test(char *path, int hack_size, int type) {
-    if (type == HLL2) {
-        #define cuda_opt_hll
-    }
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
         return -1;
@@ -69,10 +68,16 @@ int hll_test(char *path, int hack_size, int type) {
     }
     int threads_num = 1024;
     int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
-    #ifdef cuda_opt_hll
-    cuda_spmv_hll_v2<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
-    #else
+    int shared_mem_size = threads_num * sizeof(double);
+    #ifdef hll_v1
     cuda_spmv_hll<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+    #endif
+    #ifdef hll_v2
+    printf("Test vers 2\n");
+    cuda_spmv_hll_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+    #endif
+    #ifdef hll_v3
+    cuda_spmv_hll_v3<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
     err = cudaGetLastError();
     if (err != cudaSuccess) {
