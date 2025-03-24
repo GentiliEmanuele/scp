@@ -8,9 +8,11 @@
 #include <cuda_runtime.h>
 #include <math.h>
 
+#define WARP_SIZE 32
+
 //#define csr_v1
-#define csr_v2
-//#define csr_v3
+//#define csr_v2
+#define csr_v3
 //#define csr_v4
 
 int csr_test(const char *path) {
@@ -66,22 +68,24 @@ int csr_test(const char *path) {
         csr_cleanup(&sm);
         return 1;
     }
-    int threads_num = 1024;
-    int blocks_num = (int)ceil(sm.num_rows / (double)32);
-    int shared_mem_size = threads_num * sizeof(double);
     #ifdef csr_v1
-    cuda_spmv_csr<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
+    cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     #endif
     #ifdef csr_v2
-    printf("Test version 2\n");
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
+    int shared_mem_size = threads_num * sizeof(double);
     cuda_spmv_csr_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     #endif
     #ifdef csr_v3
-    printf("Test version 3\n");
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.num_rows *(double) WARP_SIZE / (double)threads_num);
     cuda_spmv_csr_v3<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     #endif
     #ifdef csr_v4
-    printf("Test version 4\n");
+    int shared_mem_size = threads_num * sizeof(double);
     cuda_spmv_csr_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     #endif
     err = cudaGetLastError();
@@ -104,9 +108,7 @@ int csr_test(const char *path) {
     if (spmv_csr_par(test_result, &sm, v, sm.num_rows)) {
         printf("spmv_csr_par failed\n");
     } else if (!d_veceq(result, test_result, sm.num_rows, 1e-6)) {
-        printf("matrix %s\n", path);
-        // printf("kernel(%d, %d)\n", blocks_num, threads_num);
-        printf("test failed\n");
+        printf("Test failed for %s (#threads=%d, #rows=%d)\n", path, threads_num * blocks_num, sm.num_rows);
     } else {
 	printf("Test passed for %s \n", path);
     }

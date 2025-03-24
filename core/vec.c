@@ -22,16 +22,16 @@ inline double *d_random(int n) {
 
 inline int d_veceq(double *u, double *v, int n, double eps) {
     double s = 0.0;
+    double max = 0.0;
     for (int i = 0; i < n; i++) {
         double d = fabs(u[i] - v[i]);
-        if (d > eps) {
-            s += d;
-        }
+        s += d / u[i];
+	if (s > max) max = s;
     }
     s /= n;
-    if (s > 0.0)
-        printf("error=%f\n", s);
-    return s > 0.0 ? 0 : 1;
+    if (s > eps)
+        printf("error=%lg, max=%lg\n", s, max);
+    return s > eps ? 0 : 1;
 }
 
 int read_vector(double *vector, int n, const char *path) {
