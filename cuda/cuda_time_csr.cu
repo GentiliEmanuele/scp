@@ -10,8 +10,8 @@
 
 //#define csr_v1
 //#define csr_v2
-#define csr_v3
-//#define csr_v4
+//#define csr_v3
+#define csr_v4
 
 
 int csr_time(const char *path, int runs_num, struct time_info *ti) {

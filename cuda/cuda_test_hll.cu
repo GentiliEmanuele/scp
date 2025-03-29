@@ -9,8 +9,9 @@
 
 //#define hll_v0
 //#define hll_v1
-#define hll_v2
+//#define hll_v2
 //#define hll_v3
+#define hll_v4
  
 
 int hll_test(char *path, int hack_size) {
@@ -81,6 +82,10 @@ int hll_test(char *path, int hack_size) {
     #endif
     #ifdef hll_v3
     cuda_spmv_hll_v3<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+    #endif
+    #ifdef hll_v4
+    int shared_mem_size = threads_num * sizeof(double);
+    cuda_spmv_hll_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
     err = cudaGetLastError();
     if (err != cudaSuccess) {
