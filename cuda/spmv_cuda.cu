@@ -45,8 +45,8 @@ __global__ void cuda_spmv_hll_v2(double *res, int hack_size, int hacks_num, doub
         for (int j = row_start; j < row_end; ++j) {
             col_index[j] < 1024 ? sum += data[j] * vTile[col_index[j]] : sum += data[j] * v[col_index[j]];
         }
+        res[i] = sum;
     }
-    	res[i] = sum;
 }
 
 __global__ void cuda_spmv_hll_v3(double *res, int hack_size, int hacks_num, double *data, int *offsets, int *col_index,  int *max_nzr, double *v, int n) {

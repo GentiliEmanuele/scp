@@ -17,7 +17,11 @@
         "omp_time.h": "c",
         "csr.h": "c",
         "chrono": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "span": "cpp"
     },
     "makefile.configureOnOpen": true
 }
