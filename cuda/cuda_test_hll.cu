@@ -6,12 +6,6 @@
 #include "utils.h"
 #include "vec.h"
 #include <cuda_runtime.h>
-
-//#define hll_v0
-//#define hll_v1
-//#define hll_v2
-//#define hll_v3
-#define hll_v4
  
 
 int hll_test(char *path, int hack_size) {

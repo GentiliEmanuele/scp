@@ -55,44 +55,43 @@ __global__ void cuda_spmv_hll_v2(double *res, int hack_size, int hacks_num, doub
 }
 __global__ void cuda_spmv_hll_v3(double *res, int hack_size, int hacks_num, double *data, int *offsets, int *col_index,  int *max_nzr, double *v, int n) {
     int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
-    int warp_id = thread_id / 32;
-    int lane = thread_id % 32;
-    int row = warp_id;
-    double sum = 0.0;
-    if (row < n) {
-        int hack = row / hack_size;
-        int row_start = (row % hack_size) * max_nzr[hack] + offsets[hack];
+    int warp_id = thread_id >> 5;
+    int lane = thread_id & 31;
+    if (warp_id < n) {
+        double sum = 0.0;
+        int hack = warp_id / hack_size;
+        int row_start = (warp_id % hack_size) * max_nzr[hack] + offsets[hack];
         int row_end = row_start + max_nzr[hack];
         for (int element = row_start + lane; element < row_end; element += 32) {
             sum += data[element] * v[col_index[element]];
         } 
-        for (int offset = 16; offset > 0; offset /= 2) {
+        for (int offset = 16; offset > 0; offset >>= 1) {
             sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
         }
-        if (lane == 0) res[row] = sum;
+        if (lane == 0) res[warp_id] = sum;
     }
 }
 
 __global__ void cuda_spmv_hll_v4(double *res, int hack_size, int hacks_num, double *data, int *offsets, int *col_index,  int *max_nzr, double *v, int n) {
     int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
-    int warp_id = thread_id / 32;
-    int lane = thread_id % 32;
-    int row = warp_id;
-    double sum = 0.0;
+    int warp_id = thread_id >> 5;
+    int lane = thread_id & 31;
     extern __shared__ double results[];
-    if (row < n) {
-        int hack = row / hack_size;
-        int row_start = (row % hack_size) * max_nzr[hack] + offsets[hack];
+    if (warp_id < n) {
+        double sum = 0.0;
+        int hack = warp_id / hack_size;
+        int row_start = (warp_id % hack_size) * max_nzr[hack] + offsets[hack];
         int row_end = row_start + max_nzr[hack];
 	results[threadIdx.x] = 0.0;
+        #pragma unroll
         for (int element = row_start + lane; element < row_end; element += 32) {
             results[threadIdx.x] += data[element] * v[col_index[element]];
         } 
 	sum = results[threadIdx.x];
-	for (int offset = 16; offset > 0; offset /= 2) {
+	for (int offset = 16; offset > 0; offset >>=1) {
             sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
         }
-        if (lane == 0) res[row] = sum;
+        if (lane == 0) res[warp_id] = sum;
     }
 }
 

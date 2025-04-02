@@ -9,11 +9,6 @@
 #include <math.h>
 
 #define pr_err(err) printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err))
-//#define hll_v0
-//#define hll_v1
-//#define hll_v2
-#define hll_v3
-//#define hll_v4
 
 int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti) {
     struct MatrixMarket mm;
@@ -96,23 +91,32 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     int threads_num = 1024;
-    int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
-    int shared_mem_size = threads_num * sizeof(double);
     for (int i = 0; i < runs_num; ++i) {
-        cudaEventRecord(start);
         #ifdef hll_v0
+        int blocks_num = (int)ceil(sm.hacks_num / (double)threads_num);
+        cudaEventRecord(start);
         cuda_spmv_hll_v0<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
         #endif
         #ifdef hll_v1
+        int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
+        cudaEventRecord(start);
         cuda_spmv_hll_v1<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
         #endif
         #ifdef hll_v2
+        int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
+	int shared_mem_size = threads_num * sizeof(double);
+        cudaEventRecord(start);
         cuda_spmv_hll_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
         #endif
         #ifdef hll_v3
-        cuda_spmv_hll_v3<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+        int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
+        cudaEventRecord(start);
+        cuda_spmv_hll_v3<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
         #endif
 	#ifdef hll_v4
+        int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
+        int shared_mem_size = threads_num * sizeof(double);
+	cudaEventRecord(start);
 	cuda_spmv_hll_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
 	#endif
         cudaEventRecord(stop);

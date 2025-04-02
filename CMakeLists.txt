@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.1)
-set(CMAKE_CUDA_ARCHITECTURES "native")
+set(CMAKE_CUDA_ARCHITECTURES 75)
 set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 project(scp LANGUAGES C CXX CUDA)
 
-
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Iinclude -O3 -march=native -fopenmp")
 set(CMAKE_CXX_FLAGS "-O3 -fopenmp -lm")
-set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-DSM_${CC};-arch=sm_${CC};-lineinfo;-Xcompiler=${CMAKE_CXX_FLAGS};-Xptxas=-v; --keep)
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 --compiler-options=-fopenmp")
+
+
+add_compile_options(-ffast-math -funroll-loops -Dhll_v3)
 
 find_package(CUDA REQUIRED)
 

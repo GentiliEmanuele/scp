@@ -10,11 +10,6 @@
 
 #define WARP_SIZE 32
 
-//#define csr_v1
-//#define csr_v2
-//#define csr_v3
-#define csr_v4
-
 int csr_test(const char *path) {
     struct MatrixMarket mm;
     if (read_mtx(path, &mm)) {
