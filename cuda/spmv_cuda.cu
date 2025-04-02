@@ -43,16 +43,12 @@ __global__ void cuda_spmv_hll_v2(double *res, int hack_size, int hacks_num, doub
         int row_end = row_start + max_nzr[hack];
         double sum = 0.0;
         for (int j = row_start; j < row_end; ++j) {
-	    if (col_index[j] < 1024) {
-		sum += data[j] * vTile[col_index[j]];
-	    } else {
-	        sum += data[j] * v[col_index[j]];
-	    }
+            col_index[j] < 1024 ? sum += data[j] * vTile[col_index[j]] : sum += data[j] * v[col_index[j]];
+        }
     }
-	res[i] = sum;
-    }
-
+    	res[i] = sum;
 }
+
 __global__ void cuda_spmv_hll_v3(double *res, int hack_size, int hacks_num, double *data, int *offsets, int *col_index,  int *max_nzr, double *v, int n) {
     int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
     int warp_id = thread_id >> 5;
@@ -114,11 +110,7 @@ __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, in
     if (i < n) {
 	    double sum = 0.0;
         for (int j = row_pointer[i]; j < row_pointer[i+1]; ++j) {
-	        if (col_index[j] < 1024) {
-		        sum += data[j] * vTile[col_index[j]];
-	        } else {
-		        sum += data[j] * v[col_index[j]];
-	        }
+            col_index[j] < 1024 ? sum += data[j] * vTile[col_index[j]] : sum += data[j] * v[col_index[j]];
         }
 	    res[i] = sum;
     }
@@ -127,8 +119,8 @@ __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, in
 
 __global__ void cuda_spmv_csr_v3(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
     int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
-    int warp_id = thread_id / 32;
-    int lane = thread_id % 32;
+    int warp_id = thread_id >> 5;
+    int lane = thread_id & 31;
     double sum = 0.0;
     if (warp_id > n) return;
     int row_start = row_pointer[warp_id];
@@ -145,8 +137,8 @@ __global__ void cuda_spmv_csr_v3(double *res, int *row_pointer, double *data, in
 
 __global__ void cuda_spmv_csr_v4(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
     int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
-    int warp_id = thread_id / 32;
-    int lane = thread_id % 32;
+    int warp_id = thread_id >> 5;
+    int lane = thread_id & 31;
     double sum = 0.0;
     extern __shared__ double results[];
     if (warp_id < n) {
