@@ -104,7 +104,7 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
         #endif
         #ifdef hll_v2
         int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
-	int shared_mem_size = threads_num * sizeof(double);
+	    int shared_mem_size = threads_num * sizeof(double);
         cudaEventRecord(start);
         cuda_spmv_hll_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
         #endif
@@ -113,12 +113,12 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
         cudaEventRecord(start);
         cuda_spmv_hll_v3<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
         #endif
-	#ifdef hll_v4
+	    #ifdef hll_v4
         int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
         int shared_mem_size = threads_num * sizeof(double);
-	cudaEventRecord(start);
-	cuda_spmv_hll_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
-	#endif
+	    cudaEventRecord(start);
+	    cuda_spmv_hll_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+	    #endif
         cudaEventRecord(stop);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
@@ -144,7 +144,6 @@ int hll_time(const char *path, int runs_num, int hack_size, struct time_info *ti
         sum += m;
     }
     ti->millis = sum / runs_num;
-    ti->millis = sum / runs_num;   
     ti->dev = std_dev(samples, ti->millis, runs_num);
     ti->flops = (2 * nz) / ti->millis;
     ti->min = min;

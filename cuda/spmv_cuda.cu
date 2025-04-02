@@ -48,7 +48,7 @@ __global__ void cuda_spmv_hll_v2(double *res, int hack_size, int hacks_num, doub
 	    } else {
 	        sum += data[j] * v[col_index[j]];
 	    }
-        }
+    }
 	res[i] = sum;
     }
 
@@ -82,13 +82,12 @@ __global__ void cuda_spmv_hll_v4(double *res, int hack_size, int hacks_num, doub
         int hack = warp_id / hack_size;
         int row_start = (warp_id % hack_size) * max_nzr[hack] + offsets[hack];
         int row_end = row_start + max_nzr[hack];
-	results[threadIdx.x] = 0.0;
-        #pragma unroll
+	    results[threadIdx.x] = 0.0;
         for (int element = row_start + lane; element < row_end; element += 32) {
             results[threadIdx.x] += data[element] * v[col_index[element]];
         } 
-	sum = results[threadIdx.x];
-	for (int offset = 16; offset > 0; offset >>=1) {
+	    sum = results[threadIdx.x];
+	    for (int offset = 16; offset > 0; offset >>=1) {
             sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
         }
         if (lane == 0) res[warp_id] = sum;
@@ -113,15 +112,15 @@ __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, in
     extern __shared__ double vTile[];
     if (threadIdx.x < n) vTile[threadIdx.x] = v[threadIdx.x];
     if (i < n) {
-	double sum = 0.0;
+	    double sum = 0.0;
         for (int j = row_pointer[i]; j < row_pointer[i+1]; ++j) {
-	    if (col_index[j] < 1024) {
-		sum += data[j] * vTile[col_index[j]];
-	    } else {
-		sum += data[j] * v[col_index[j]];
-	    }
+	        if (col_index[j] < 1024) {
+		        sum += data[j] * vTile[col_index[j]];
+	        } else {
+		        sum += data[j] * v[col_index[j]];
+	        }
         }
-	res[i] = sum;
+	    res[i] = sum;
     }
 }
 
@@ -135,7 +134,7 @@ __global__ void cuda_spmv_csr_v3(double *res, int *row_pointer, double *data, in
     int row_start = row_pointer[warp_id];
     int row_end = row_pointer[warp_id + 1];
     for (int element = row_start + lane; element < row_end; element += 32) {
-	sum += data[element] * v[col_index[element]];
+	    sum += data[element] * v[col_index[element]];
     }
     for (int offset = 16; offset > 0; offset /= 2) {
         sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
@@ -151,13 +150,13 @@ __global__ void cuda_spmv_csr_v4(double *res, int *row_pointer, double *data, in
     double sum = 0.0;
     extern __shared__ double results[];
     if (warp_id < n) {
-	int row_start = row_pointer[warp_id];
+	    int row_start = row_pointer[warp_id];
     	int row_end = row_pointer[warp_id + 1];
         results[threadIdx.x] = 0.0;
     	for (int element = row_start + lane; element < row_end; element += 32) {
-		results[threadIdx.x] += data[element] * v[col_index[element]];
+		    results[threadIdx.x] += data[element] * v[col_index[element]];
     	}
-	sum = results[threadIdx.x];
+	    sum = results[threadIdx.x];
     	for (int offset = 16; offset > 0; offset /= 2) {
         	sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
     	}

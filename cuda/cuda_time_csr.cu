@@ -92,7 +92,7 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
     int blocks_num = (int)ceil(sm.num_rows / (double)32);
     for (int i = 0; i < runs_num; i++) {
         cudaEventRecord(start);
-	#ifdef csr_v1
+	    #ifdef csr_v1
     	cuda_spmv_csr<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     	#endif
     	#ifdef csr_v2
@@ -102,10 +102,10 @@ int csr_time(const char *path, int runs_num, struct time_info *ti) {
     	#ifdef csr_v3
     	cuda_spmv_csr_v3<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     	#endif
-   	#ifdef csr_v4
+   	    #ifdef csr_v4
         int shared_mem_size = threads_num * sizeof(double);
-	cuda_spmv_csr_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
-   	#endif
+	    cuda_spmv_csr_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
+   	    #endif
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         float m = 0.0;
