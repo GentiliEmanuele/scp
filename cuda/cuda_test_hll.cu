@@ -6,7 +6,8 @@
 #include "utils.h"
 #include "vec.h"
 #include <cuda_runtime.h>
- 
+
+#define WARP_SIZE 32 
 
 int hll_test(char *path, int hack_size) {
     struct MatrixMarket mm;
@@ -62,24 +63,32 @@ int hll_test(char *path, int hack_size) {
         cudaFree(d_v);
         return 1;
     }
-    int threads_num = 1024;
-    int blocks_num = (int)ceil(sm.num_rows * 32 / (double)threads_num);
     #ifdef hll_v0
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.hacks_num  / (double)threads_num);
     cuda_spmv_hll_v0<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
     #ifdef hll_v1
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.num_rows  / (double)threads_num);
     cuda_spmv_hll_v1<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
     #ifdef hll_v2
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.num_rows / (double)threads_num);
     int shared_mem_size = threads_num * sizeof(double);
     cuda_spmv_hll_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
     #ifdef hll_v3
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.num_rows * WARP_SIZE / (double)threads_num);
     cuda_spmv_hll_v3<<<blocks_num, threads_num>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
     #ifdef hll_v4
+    int threads_num = 1024;
+    int blocks_num = (int)ceil(sm.num_rows * WARP_SIZE / (double)threads_num);
     int shared_mem_size = threads_num * sizeof(double);
-    cuda_spmv_hll_v2<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
+    cuda_spmv_hll_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, sm.hack_size, sm.hacks_num, d_data, d_offsets, d_col_index, d_maxnzr, d_v, sm.num_rows);
     #endif
     err = cudaGetLastError();
     if (err != cudaSuccess) {

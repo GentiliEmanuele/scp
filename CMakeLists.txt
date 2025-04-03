@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS "-O3 -fopenmp -lm")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 --compiler-options=-fopenmp")
 
 
-add_compile_options(-ffast-math -funroll-loops -Dhll_v3)
+add_compile_options(-ffast-math -funroll-loops -Dcsr_v4 -Dhll_v4)
 
 find_package(CUDA REQUIRED)
 

@@ -25,13 +25,13 @@ inline int d_veceq(double *u, double *v, int n, double eps) {
     double max = 0.0;
     for (int i = 0; i < n; i++) {
         double d = fabs(u[i] - v[i]);
-        s += d / u[i];
+	if (u[i] != 0.0) s += d / u[i];
 	if (s > max) max = s;
     }
     s /= n;
-    if (s > eps)
+//    if (fabs(s) > eps)
         printf("error=%lg, max=%lg\n", s, max);
-    return s > eps ? 0 : 1;
+    return fabs(s) > eps ? 0 : 1;
 }
 
 int read_vector(double *vector, int n, const char *path) {

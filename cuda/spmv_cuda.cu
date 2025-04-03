@@ -36,9 +36,9 @@ __global__ void cuda_spmv_hll_v1(double *res, int hack_size, int hacks_num, doub
 
 __global__ void cuda_spmv_hll_v2(double *res, int hack_size, int hacks_num, double *data, int *offsets, int *col_index,  int *max_nzr, double *v, int n) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i >= n) return;
     extern __shared__ double vTile[];
     if (threadIdx.x < n) vTile[threadIdx.x] = v[threadIdx.x];
+    if (i >= n) return;
     int hack = i / hack_size;
     int row_start = (i % hack_size) * max_nzr[hack] + offsets[hack];
     int row_end = row_start + max_nzr[hack];
@@ -108,8 +108,8 @@ __global__ void cuda_spmv_csr(double *res, int *row_pointer, double *data, int *
 __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     extern __shared__ double vTile[];
-    if (i >= n) return;
     if (threadIdx.x < n) vTile[threadIdx.x] = v[threadIdx.x];
+    if (i >= n) return;
     double sum = 0.0;
     #pragma unroll
     for (int j = row_pointer[i]; j < row_pointer[i+1]; ++j) {
@@ -131,7 +131,7 @@ __global__ void cuda_spmv_csr_v3(double *res, int *row_pointer, double *data, in
     for (int element = row_start + lane; element < row_end; element += 32) {
 	    sum += data[element] * v[col_index[element]];
     }
-    for (int offset = 16; offset > 0; offset >> = 1) {
+    for (int offset = 16; offset > 0; offset >>= 1) {
         sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
     }
     if (lane == 0) res[warp_id] = sum;
