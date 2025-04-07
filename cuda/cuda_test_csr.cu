@@ -79,12 +79,6 @@ int csr_test(const char *path) {
     int blocks_num = (int)ceil(sm.num_rows *(double) WARP_SIZE / (double)threads_num);
     cuda_spmv_csr_v3<<<blocks_num, threads_num>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
     #endif
-    #ifdef csr_v4
-    int threads_num = 1024;
-    int blocks_num = (int)ceil(sm.num_rows *(double) WARP_SIZE / (double)threads_num);
-    int shared_mem_size = threads_num * sizeof(double);
-    cuda_spmv_csr_v4<<<blocks_num, threads_num, shared_mem_size>>>(d_result, d_row_pointer, d_data, d_col_index, d_v, sm.num_rows);
-    #endif
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
