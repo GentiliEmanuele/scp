@@ -70,28 +70,6 @@ __global__ void cuda_spmv_hll_v3(double *res, int hack_size, int hacks_num, doub
     if (lane == 0) res[warp_id] = sum;
 }
 
-__global__ void cuda_spmv_hll_v4(double *res, int hack_size, int hacks_num, double *data, int *offsets, int *col_index,  int *max_nzr, double *v, int n) {
-    int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
-    int warp_id = thread_id >> 5;
-    if (warp_id >= n) return;
-    int lane = thread_id & 31;
-    extern __shared__ double results[];
-    double sum = 0.0;
-    int hack = warp_id / hack_size;
-    int row_start = (warp_id % hack_size) * max_nzr[hack] + offsets[hack];
-    int row_end = row_start + max_nzr[hack];
-    results[threadIdx.x] = 0.0;
-    #pragma unroll
-    for (int element = row_start + lane; element < row_end; element += 32) {
-        results[threadIdx.x] += data[element] * v[col_index[element]];
-    } 
-    sum = results[threadIdx.x];
-    for (int offset = 16; offset > 0; offset >>=1) {
-        sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
-    }
-    if (lane == 0) res[warp_id] = sum;
-}
-
 
 __global__ void cuda_spmv_csr(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -138,24 +116,4 @@ __global__ void cuda_spmv_csr_v3(double *res, int *row_pointer, double *data, in
 }
 
 
-__global__ void cuda_spmv_csr_v4(double *res, int *row_pointer, double *data, int *col_index,  double *v, int n) {
-    int thread_id = blockDim.x * blockIdx.x + threadIdx.x;
-    int warp_id = thread_id >> 5;
-    if (warp_id >= n) return;
-    int lane = thread_id & 31;
-    double sum = 0.0;
-    extern __shared__ double results[];
-    int row_start = row_pointer[warp_id];
-    int row_end = row_pointer[warp_id + 1];
-    results[threadIdx.x] = 0.0;
-    #pragma unroll
-    for (int element = row_start + lane; element < row_end; element += 32) {
-        results[threadIdx.x] += data[element] * v[col_index[element]];
-    }
-    sum = results[threadIdx.x];
-    for (int offset = 16; offset > 0; offset >>= 1) {
-        sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
-    }
-    if (lane == 0) res[warp_id] = sum;
-}
 
