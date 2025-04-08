@@ -8,7 +8,6 @@ __global__ void cuda_spmv_hll_v0(double *res, int hack_size, int hacks_num, doub
     int h = blockDim.x * blockIdx.x + threadIdx.x;
     if (h >= hacks_num) return;
     int rows = num_of_rows(0, hack_size, hacks_num, n);
-    #pragma unroll
     for (int r = 0; r < num_of_rows(h, hack_size, hacks_num, n); ++r) {
         double sum = 0.0;
         for (int j = 0; j < max_nzr[h]; ++j) {
@@ -27,7 +26,6 @@ __global__ void cuda_spmv_hll_v1(double *res, int hack_size, int hacks_num, doub
     int row_start = (i % hack_size) * max_nzr[hack] + offsets[hack];
     int row_end = row_start + max_nzr[hack];
     double sum = 0.0;
-    #pragma unroll
     for (int j = row_start; j < row_end; ++j) {
         sum += data[j] * v[col_index[j]];
     }
@@ -43,7 +41,6 @@ __global__ void cuda_spmv_hll_v2(double *res, int hack_size, int hacks_num, doub
     int row_start = (i % hack_size) * max_nzr[hack] + offsets[hack];
     int row_end = row_start + max_nzr[hack];
     double sum = 0.0;
-    #pragma unroll
     for (int j = row_start; j < row_end; ++j) {
         col_index[j] < 1024 ? sum += data[j] * vTile[col_index[j]] : sum += data[j] * v[col_index[j]];
     }
@@ -60,7 +57,6 @@ __global__ void cuda_spmv_hll_v3(double *res, int hack_size, int hacks_num, doub
     int hack = warp_id / hack_size;
     int row_start = (warp_id % hack_size) * max_nzr[hack] + offsets[hack];
     int row_end = row_start + max_nzr[hack];
-    #pragma unroll
     for (int element = row_start + lane; element < row_end; element += 32) {
         sum += data[element] * v[col_index[element]];
     } 
@@ -75,7 +71,6 @@ __global__ void cuda_spmv_csr(double *res, int *row_pointer, double *data, int *
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i >= n) return; 
     double sum = 0.0;
-    #pragma unroll
     for (int j = row_pointer[i]; j < row_pointer[i+1]; ++j) {
         sum += data[j] * v[col_index[j]];
     }
@@ -89,7 +84,6 @@ __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, in
     if (threadIdx.x < n) vTile[threadIdx.x] = v[threadIdx.x];
     if (i >= n) return;
     double sum = 0.0;
-    #pragma unroll
     for (int j = row_pointer[i]; j < row_pointer[i+1]; ++j) {
         col_index[j] < 1024 ? sum += data[j] * vTile[col_index[j]] : sum += data[j] * v[col_index[j]];
     }
@@ -105,7 +99,6 @@ __global__ void cuda_spmv_csr_v3(double *res, int *row_pointer, double *data, in
     double sum = 0.0;
     int row_start = row_pointer[warp_id];
     int row_end = row_pointer[warp_id + 1];
-    #pragma unroll
     for (int element = row_start + lane; element < row_end; element += 32) {
 	    sum += data[element] * v[col_index[element]];
     }
