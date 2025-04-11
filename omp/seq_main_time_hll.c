@@ -8,8 +8,8 @@ int main(int argc, char **argv) {
         return 1;
     }
     char *out_path = argv[4];
-    int num_iterations = atoi(argv[3]);
-    int hack_size = atoi(argv[2]);
+    int num_iterations = atoi(argv[2]);
+    int hack_size = atoi(argv[3]);
     char *path = argv[1];
     read_and_measure_seq_hll(path, hack_size, num_iterations, out_path);
     return 0;
