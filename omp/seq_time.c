@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <omp.h>
 
 int seq_time_csr(const char *file, int num_runs, time_measurement_seq_t *time_measurement) {
     struct MatrixMarket mm;
