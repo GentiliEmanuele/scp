@@ -26,6 +26,10 @@ seq_time_csr:
 	mkdir -p build
 	gcc -O3 core/*.c omp/spmv_*.c omp/seq_time.c omp/seq_main_time_csr.c -o build/seq_time_csr.exe -fopenmp -lm -Icore -Iomp
 
+seq_time_hll:
+	mkdir -p build
+	gcc -O3 core/*.c omp/spmv_*.c omp/seq_time.c omp/seq_main_time_hll.c -o build/seq_time_hll.exe -fopenmp -lm -Icore -Iomp
+
 cuda:
 	mkdir -p build/cuda
 	cmake CMakeLists.txt -B build/cuda
