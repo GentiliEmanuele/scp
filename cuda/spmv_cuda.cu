@@ -36,6 +36,7 @@ __global__ void cuda_spmv_hll_v2(double *res, int hack_size, int hacks_num, doub
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     extern __shared__ double vTile[];
     if (threadIdx.x < n) vTile[threadIdx.x] = v[threadIdx.x];
+    __syncthreads();
     if (i >= n) return;
     int hack = i / hack_size;
     int row_start = (i % hack_size) * max_nzr[hack] + offsets[hack];
@@ -82,6 +83,7 @@ __global__ void cuda_spmv_csr_v2(double *res, int *row_pointer, double *data, in
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     extern __shared__ double vTile[];
     if (threadIdx.x < n) vTile[threadIdx.x] = v[threadIdx.x];
+    __syncthreads();
     if (i >= n) return;
     double sum = 0.0;
     for (int j = row_pointer[i]; j < row_pointer[i+1]; ++j) {

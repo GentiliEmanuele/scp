@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     }
 
     int hack_size = 0;
-    if (test_type == HLL || test_type) {
+    if (test_type == HLL) {
         if (argc == 3) {
             hack_size = atoi(argv[3]);
             if (hack_size == 0) {

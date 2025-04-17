@@ -95,6 +95,7 @@ int csr_test(const char *path) {
     if (err != cudaSuccess) {
         printf("error %d (%s): %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
     }
+    print_vec(result, 10);
     double *test_result = d_zeros(sm.num_rows);
     if (spmv_csr_par(test_result, &sm, v, sm.num_rows)) {
         printf("spmv_csr_par failed\n");
@@ -103,6 +104,7 @@ int csr_test(const char *path) {
     } else {
 	printf("Test passed for %s \n", path);
     }
+    print_vec(test_result, 10);
     cudaFree(d_data);
     cudaFree(d_col_index);
     cudaFree(d_result);
